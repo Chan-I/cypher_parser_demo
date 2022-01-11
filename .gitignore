@@ -1,0 +1,7 @@
+test
+*.o
+*.lex.c
+*.lex.h
+*.tab.c
+*.tab.h
+lex.yy.c

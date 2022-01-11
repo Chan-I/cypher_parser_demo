@@ -112,6 +112,7 @@ FALSE	{ printf("BOOL "); }
 "//"[ \t].*	;
 
 	/* everything else */
+[ \t\n]	;	
 .               { printf("mystery character "); }
 
 

@@ -5,3 +5,4 @@ test
 *.tab.c
 *.tab.h
 lex.yy.c
+lex.yy.h

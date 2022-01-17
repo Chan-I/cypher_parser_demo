@@ -6,13 +6,15 @@
 
 # programs in chapter 1
 
-all:	 test 
+all:	test
 
-
-test:	test.l
-	flex $<
-	cc -o $@ lex.yy.c -lfl
+test:	test.l test.y test.h testfuncs.c
+	bison -d test.y
+	flex -o test.lex.c test.l
+	cc -g -O0 -o $@ test.tab.c test.lex.c testfuncs.c
 
 clean:
-	rm -f test lex.yy.c
+	rm -f test \
+	test.lex.c test.tab.h test.tab.c \
+	*.output
 

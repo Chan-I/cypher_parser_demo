@@ -32,7 +32,7 @@ LIMIT       { return LIMIT;      }
 "."[0-9]+([Ee][-+]?[0-9]+)?	{ yylval.floatval = atof(yytext) ;return APPROXNUM; }
 
 
-[-+*/%\^(){}.:;,\[\]]  { return  yytext[0]; }
+[-+*/%\^(){}.:;,\[\]<>]  { return  yytext[0]; }
 
 
 

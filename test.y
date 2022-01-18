@@ -87,7 +87,7 @@ asc_desc_opt:/* no ASC DESC */
 ;
 
 limit_clause:/* no limit */
-| LIMIT INTNUM  {emit("LIMIT %d\n",$2); free($2);}
+| LIMIT INTNUM  {emit("LIMIT %d\n",$2); }
 ;
 
 col_name:NAME {emit("%s ",$1);free($1);}

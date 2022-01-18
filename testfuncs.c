@@ -88,6 +88,20 @@ treefree(struct ast *a)
   }
 }
 
+
+void
+emit(char *s, ...)
+{
+  extern yylineno;
+
+  va_list ap;
+  va_start(ap, s);
+
+  printf("rpn: ");
+  vfprintf(stdout, s, ap);
+  printf("\n");
+}
+
 void 
 yyerror(const char *s, ...) 
 { 

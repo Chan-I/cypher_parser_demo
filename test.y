@@ -35,9 +35,9 @@ void emit(char *s, ...);
 
 
 
-%type <a> exp factor term
+// %type <a> exp factor term
 %type <strval> col_name opt_as_alias return_col limit_clause asc_desc_opt order_by_clause
-%type <strval> return_expr return_expr_list  return_opts Cypher
+%type <strval> return_expr return_expr_list  return_opts 
 
 %start return_clause
 
@@ -54,10 +54,9 @@ match_expr_list:
 
 */
 
-return_clause: RETURN return_opts return_expr_list EOL {emit("RETURN ");}
-| RETURN return_opts return_expr_list order_by_clause limit_clause EOL {emit("RETURN ");}
+return_clause: RETURN return_opts return_expr_list order_by_clause limit_clause EOL {emit("RETURN ");}
 
-return_opts:     /* Distinct or no*/
+return_opts:     /* Distinct or no*/ {}
 | return_opts DISTINCT  {emit("DISTINCT");}
 ;
 
@@ -68,7 +67,7 @@ return_expr_list:return_expr /* [name] OR [a,b,c] */    {emit("return_expr");}
 return_expr:return_col opt_as_alias {}
 ; /* [ ... as b] OR  [...]*/
 
-opt_as_alias: /* no AS Alias*/
+opt_as_alias: /* no AS Alias*/ {}
 | AS NAME       {emit("AS %s",$2); free($2);}
 ;
 
@@ -77,16 +76,16 @@ return_col:col_name             /* a.id */  {}
 | NAME '(' DISTINCT col_name ')' /* count(distinct a.id) */  {emit("%s(DISTINCT",$1);emit(")");}
 ; 
 
-order_by_clause: /* no orderby*/
+order_by_clause: /* no orderby*/ {}
 | ORDER BY col_name asc_desc_opt    {emit("ORDER BY ");}
 ;
 
-asc_desc_opt:/* no ASC DESC */
+asc_desc_opt:/* no ASC DESC */ {}
 | ASC       {emit("ASC ");}
 | DESC      {emit("DESC ");}
 ;
 
-limit_clause:/* no limit */
+limit_clause:/* no limit */ {}
 | LIMIT INTNUM  {emit("LIMIT %d\n",$2); }
 ;
 
@@ -99,15 +98,15 @@ col_name:NAME {emit("%s ",$1);free($1);}
 
 
 
-
-calclist: /* nothing */
+/*
+calclist: 
 | calclist exp EOL {
      printf("= %4.4g\n", eval($2));
      treefree($2);
      printf("> ");
  }
 
- | calclist EOL	{ printf("> "); } /* blank line or a comment */
+ | calclist EOL	{ printf("> "); } 
  ;
 
 exp: factor
@@ -126,7 +125,7 @@ term: APPROXNUM	{ $$ = newappnum($1); }
  | '-' term    { $$ = newast('M', $2, NULL); }
  ;
 
-
+*/
 
 
 

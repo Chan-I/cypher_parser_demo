@@ -8,13 +8,19 @@
 
 all:	test
 
-test:	test.l test.y test.h testfuncs.c
-	bison -d test.y
-	flex -o test.lex.c test.l
-	cc -g -O0 -o $@ test.tab.c test.lex.c testfuncs.c
+test:testfuncs.c test.tab.c test.lex.c
+	cc -g -O0 -o $@ $^
+
+test.tab.c:test.y
+	bison -d $^
+
+test.lex.c:test.l
+	flex -o $@ $^
+
+
 
 clean:
 	rm -f test \
-	lex.yy.c *.lex.c *.lex.h *.tab.h *.tab.c \
+	*.lex.c *.lex.h *.tab.h *.tab.c \
 	*.output
 

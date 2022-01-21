@@ -1,3 +1,4 @@
+```sql
 MATCH (a:Meta) RETURN count(distinct a.name)
 MATCH (a:Meta) WHERE a.sys_time < 0 OR a.node_id > 845 RETURN count(a)
 MATCH (n) WHERE id(n) = 345 RETURN n.mono_time, n.sys_time, n.name
@@ -39,3 +40,4 @@ MATCH (a:Global)-[:LOC_OBJ]->(b) WITH a, count(b) AS num_things WHERE num_things
 MATCH (a)-->(b) WITH b MATCH (c)<--(b) WHERE id(c) < 643 WITH c MATCH ()-[r]-(c) RETURN count(r)
 MATCH (n) WHERE id(n) IN [10, 110, 317] AND exists(n.pid) RETURN n.status, n.pid
 MATCH (proc:Process)<-[po:PROC_OBJ]-(loc:Local)<-[lo:LOC_OBJ]-(gl:Global)-->(:Local)-->(proc2:Process) WHERE id(proc) IN [137, 149, 162, 278] RETURN DISTINCT proc2.pid ORDER BY proc2.pid ASC
+```

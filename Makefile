@@ -15,6 +15,6 @@ test:	test.l test.y test.h testfuncs.c
 
 clean:
 	rm -f test \
-	test.lex.c test.tab.h test.tab.c \
+	lex.yy.c *.lex.c *.lex.h *.tab.h *.tab.c \
 	*.output
 

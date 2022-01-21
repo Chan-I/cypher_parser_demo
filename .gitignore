@@ -4,5 +4,5 @@ test
 *.lex.h
 *.tab.c
 *.tab.h
-lex.yy.c
-lex.yy.h
+*.yy.c
+*.yy.h

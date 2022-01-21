@@ -66,7 +66,7 @@ void emit(char *s, ...);
 
 
 // %type <a> exp factor term
-%type <strval> col_name opt_as_alias return_col limit_clause asc_desc_opt order_by_clause distinct_opt
+%type <strval> col_name opt_as_alias limit_clause asc_desc_opt order_by_clause distinct_opt
 %type <strval> return_expr return_expr_list func_opt  
 
 %type <strval> where_clause where_expression XORExpression ANDExpression NOTExpression ComparisonExpression
@@ -131,7 +131,7 @@ NumberLiteral:INTNUM        {emit("%d",$1);}
 | APPROXNUM                 {emit("%f",$1);}
 ;
 
-INExpression:
+INExpression:                   {emit("no INExpression");}
 | '[' StringList ']'            {emit("StringList");}
 | '[' IntList ']'               {emit("IntList");}
 | '[' ApproxnumList ']'         {emit("ApproxnumList");}
@@ -154,18 +154,15 @@ ApproxnumList:APPROXNUM         {emit("%f",$1);}
 
 
 
-
-
-
-
 return_clause: RETURN distinct_opt return_expr_list order_by_clause limit_clause EOL {emit("RETURN ");}
 
 return_expr_list:return_expr /* [name] OR [a,b,c] */    {emit("return_expr");}
 | return_expr_list ',' return_expr   {emit(" , ");}
 ;
 
-return_expr:col_name opt_as_alias {emit("return_expr");}
-| func_opt opt_as_alias             {emit("return_expr");}
+return_expr:col_name opt_as_alias {emit("return_expr:col");}
+| func_opt opt_as_alias             {emit("return_expr:func");}
+| NumberLiteral opt_as_alias          {emit("return_expr:digital");}
 ; /* [ ... as b] OR  [...]*/
 
 opt_as_alias: /* no AS Alias*/ {}
@@ -188,8 +185,8 @@ order_by_clause: /* no orderby*/ {}
 | ORDER BY col_name asc_desc_opt    {emit("ORDER BY ");}
 ;
 
-distinct_opt:
-| DISTINCT {emit("DISTINCT");}
+distinct_opt:   {emit("no DISTINCT");}       
+| DISTINCT      {emit("DISTINCT");}
 ;
 
 asc_desc_opt:/* no ASC DESC */ {}
@@ -204,7 +201,6 @@ limit_clause:/* no limit */ {}
 col_name:NAME {emit("%s ",$1);free($1);}
 | NAME '.' NAME  {emit("%s.%s ",$1,$3); free($1); free($3);}
 ;
-
 
 
 

@@ -139,15 +139,15 @@ INExpression:                   {emit("no INExpression");}
 
 
 StringList:STRING               {emit("%s",$1);free($1);}
-| StringList ',' STRING         {emit("StringList");}
+| StringList ',' STRING         {emit("StringList,%s",$3);free($3);}
 ;
 
 IntList:INTNUM                  {emit("%d",$1);}
-| IntList ',' INTNUM            {emit("IntList");}
+| IntList ',' INTNUM            {emit("IntList,%d",$3);}
 ;
 
 ApproxnumList:APPROXNUM         {emit("%f",$1);}
-| ApproxnumList ',' APPROXNUM   {emit("ApproxnumList");}
+| ApproxnumList ',' APPROXNUM   {emit("ApproxnumList,%f",$3);}
 ;
 
 

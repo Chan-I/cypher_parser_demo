@@ -1,4 +1,4 @@
-%option noyywrap yylineno case-insensitive nodefault
+%option noyywrap yylineno case-insensitive 
 
 %{
 #include "test.tab.h"

@@ -69,7 +69,7 @@ void emit(char *s, ...);
 %type <strval> col_name opt_as_alias limit_clause asc_desc_opt order_by_clause distinct_opt
 %type <strval> return_expr return_expr_list func_opt  
 
-%type <strval> where_clause where_expression XORExpression ANDExpression NOTExpression ComparisonExpression
+%type <strval> where_clause where_expression ComparisonExpression
 %type <strval> Expression PartialComparisonExpression Literal FilterExpression INExpression
 %type <strval> NumberLiteral StringList IntList ApproxnumList
 %type <strval> Cypher
@@ -82,23 +82,14 @@ Cypher:where_clause return_clause {emit("Cypher");}
 ;
 
 where_clause:   {emit("where_clause");}
-| WHERE where_expression {emit("WHERE ");}
+| WHERE where_expression {emit("WHERE where_expression");}
 ;
 
-where_expression:XORExpression      {emit("where_expression");}
-| XORExpression OR XORExpression    {emit("OR");}
-;
-
-XORExpression:ANDExpression         {emit("XORExpression");}
-| ANDExpression XOR ANDExpression   {emit("XOR");}
-;
-
-ANDExpression:NOTExpression         {emit("ANDExpression");}
-| NOTExpression AND NOTExpression   {emit("AND");}
-;
-
-NOTExpression:ComparisonExpression      {emit("NOTExpression");}
-| NOT ComparisonExpression          {emit("NOT");}
+where_expression:ComparisonExpression      {emit("where_expression");}
+| where_expression OR where_expression    {emit("OR");}
+| where_expression XOR where_expression   {emit("XOR");}
+| where_expression AND where_expression   {emit("AND");}
+| NOT where_expression          {emit("NOT");}
 ;
 
 ComparisonExpression:Expression PartialComparisonExpression    {emit("ComparisonExpression");}
@@ -116,7 +107,7 @@ Expression:Literal                  {emit("Expression:Literal");}
 | INExpression                      {emit("INExpression");}
 ;
 
-FilterExpression:Literal IN where_expression where_clause  {emit("FilterExpression");}
+FilterExpression:Literal IN where_expression where_clause  {emit("FilterExpression:IN");}
 ;
 
 Literal:IntList                 {emit("Literal");}

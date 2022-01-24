@@ -24,6 +24,9 @@ void emit(char *s, ...);
 %token <strval> NAME
 %token <strval> STRING
 %token <strval> PPOINT
+%token <strval> RIGHTARROW
+%token <strval> LEFTARROW
+
 
 %left OR
 %left XOR
@@ -71,15 +74,131 @@ void emit(char *s, ...);
 
 %type <strval> where_clause where_expression ComparisonExpression
 %type <strval> Expression PartialComparisonExpression Literal FilterExpression INExpression
-%type <strval> NumberLiteral StringList IntList ApproxnumList
-%type <strval> Cypher
+%type <strval> NumberLiteral StringList IntList ApproxnumList StringParam IntParam ApproxnumParam
+%type <strval> match_clause Pattern Pattern_Part AnonymousPatternPart PatternElement
+%type <strval> NodePattern PatternElementChain_clause PatternElementChain IntegerLiteral_Pattern
+%type <strval> RelationshipPattern Variable_Pattern NodeLabels_Pattern Properties_Pattern NodeLabels NodeLabel RelationshipType_Pattern
+%type <strval> MapLiteral MapLiteral_clause MapLiteral_Pattern MapLiteral_Pattern_Part property_key RelationshipDetail
+%type <strval> RelTypeName RelTypeName_Pattern IntegerLiteral_Pattern_Part IntegerLiteralColon_Pattern_Part
 
 %start Cypher
 
 %%
 
-Cypher:where_clause return_clause {emit("Cypher");}
+Cypher: match_clause where_clause return_clause EOL     {emit("Cypher");}
+/* Match Clause */
+
+match_clause: MATCH Pattern        {emit("match_clause");}
 ;
+
+Pattern:Pattern_Part                            {emit("Pattern");}
+| Pattern ',' Pattern_Part                      {emit("Patterns:  ,  ");}
+;
+
+Pattern_Part:AnonymousPatternPart               {emit("Pattern_part");}
+| col_name COMPARISON AnonymousPatternPart      {emit("pattern_part  %d ",$2);}
+;
+
+AnonymousPatternPart:PatternElement             {emit("AnonymousPatternPart");}
+;
+
+PatternElement:'(' PatternElement ')'           {emit("( PatternElement )");}
+| NAME '(' PatternElement ')'                   {emit("Function Name ( )");}
+| NodePattern PatternElementChain_clause        {emit("NodePattern : ");}
+;
+
+PatternElementChain_clause:                     {emit("");}
+| PatternElementChains                           {emit("PatternElementChain");}
+;
+
+PatternElementChains:PatternElementChain        {emit("PatternElementChain");}
+| PatternElementChains PatternElementChain      {emit("PatternElementChain PatternElementChain ...");}
+;
+
+PatternElementChain:RelationshipPattern NodePattern     {emit("PatternElementChain");}
+;
+
+NodePattern:'(' Variable_Pattern NodeLabels_Pattern Properties_Pattern ')'  {emit("NodePattern");}
+;
+
+Variable_Pattern:               {emit("Variable is NULL");}
+| col_name                      {emit("Variable:col_name");}
+;
+
+NodeLabels_Pattern:             {emit("NodeLabels_Pattern");}
+| NodeLabel NodeLabels          {emit("NodeLabel : ");}
+;
+
+NodeLabels:                     {emit("NodeLabels");}
+| NodeLabel                     {emit("NodeLabel");}
+;
+
+NodeLabel: ':' col_name         {emit("NodeLabel : col_name");}
+;
+
+Properties_Pattern:             {emit("Properties_Pattern is NULL");}
+| MapLiteral                    {emit("MapLiteral");}
+;
+
+MapLiteral:'{' MapLiteral_clause '}'                        {emit("{MapLiteral_clause}");}
+;
+
+MapLiteral_clause:                                          {emit("MapLiteral_clause");}
+| MapLiteral_Pattern                                        {emit("MapLiteral_Pattern");}
+;
+
+MapLiteral_Pattern:MapLiteral_Pattern_Part                  {emit("MapLiteral_Pattern_Part");}
+| MapLiteral_Pattern ',' MapLiteral_Pattern_Part            {emit("MapLiteral_Pattern_Part , MapLiteral_Pattern_Part");}
+;
+
+MapLiteral_Pattern_Part:property_key ':' where_expression         {emit("property_key : Expression");}
+;
+
+property_key:col_name           {emit("property_key:col_name");}
+;
+
+RelationshipPattern:LEFTARROW RelationshipDetail RIGHTARROW  {emit("<-   ->");}
+| LEFTARROW RelationshipDetail '-'                        {emit("<-   -");}
+| '-' RelationshipDetail RIGHTARROW                        {emit("-    ->");}
+| '-' RelationshipDetail '-'                            {emit("-    -");}
+| '-' RIGHTARROW                                        {emit("-->");}
+| LEFTARROW '-'                                         {emit("<--");}
+| '-''-'                                                {emit("--");}
+;
+
+RelationshipDetail: Variable_Pattern RelationshipType_Pattern IntegerLiteral_Pattern Properties_Pattern      {emit("RelationshipDetail");}
+'[' Variable_Pattern RelationshipType_Pattern IntegerLiteral_Pattern Properties_Pattern ']'    {emit("[RelationshipDetail]");}
+;
+
+RelationshipType_Pattern:               {emit("RelationshipType_Pattern is NULL");}
+| ':' RelTypeName RelTypeName_Pattern   {emit(": RelTypeName RelTypeName_Pattern");}
+;
+
+RelTypeName_Pattern:        {}
+| '|' RelTypeName           {emit("| RelTypeName");}
+| '|' ':' RelTypeName       {emit("| : RelTypeName");}
+;
+
+RelTypeName:col_name        {emit("RelTypeName:col_name");}
+;
+
+IntegerLiteral_Pattern:                                              {emit("IntegerLiteral_Pattern is NULL");}
+| '*' IntegerLiteral_Pattern_Part IntegerLiteralColon_Pattern_Part   {emit("* IntegerLiteral_Pattern_Part");}
+;
+
+IntegerLiteralColon_Pattern_Part:           {}
+| PPOINT IntegerLiteral_Pattern_Part        {emit(".. IntegerLiteral_Pattern_Part");}
+;
+
+IntegerLiteral_Pattern_Part:                {}
+| IntegerLiteral                            {emit("IntegerLiteral");}
+;
+
+IntegerLiteral:INTNUM                       {emit("INTNUM %d",$1);}
+;
+
+
+/* Where Clause */
 
 where_clause:   {emit("where_clause");}
 | WHERE where_expression {emit("WHERE where_expression");}
@@ -110,11 +229,11 @@ Expression:Literal                  {emit("Expression:Literal");}
 FilterExpression:Literal IN where_expression where_clause  {emit("FilterExpression:IN");}
 ;
 
-Literal:IntList                 {emit("Literal");}
-| StringList                    {emit("StringList");}
+Literal:IntParam                 {emit("Literal");}
+| StringParam                    {emit("StringList");}
 | BOOL                          {emit("BOOL:%d",$1);}
 | NULLX                         {emit("NULL");}
-| ApproxnumList                 {emit("ApproxnumList");}
+| ApproxnumParam                 {emit("ApproxnumList");}
 | col_name                      {emit("col_name");}
 ;
 
@@ -128,24 +247,32 @@ INExpression:                   {emit("no INExpression");}
 | '[' ApproxnumList ']'         {emit("ApproxnumList");}
 ;
 
-
-StringList:STRING               {emit("%s",$1);free($1);}
-| StringList ',' STRING         {emit("StringList,%s",$3);free($3);}
+StringParam:STRING              {emit("%s",$1);free($1);}
 ;
 
-IntList:INTNUM                  {emit("%d",$1);}
-| IntList ',' INTNUM            {emit("IntList,%d",$3);}
+IntParam:INTNUM                 {emit("%d",$1);}
 ;
 
-ApproxnumList:APPROXNUM         {emit("%f",$1);}
-| ApproxnumList ',' APPROXNUM   {emit("ApproxnumList,%f",$3);}
+ApproxnumParam:APPROXNUM        {emit("%f",$1);}
+;
+
+StringList:StringParam               {emit("StringParam");}
+| StringList ',' StringParam         {emit("StringList , ");}
+;
+
+IntList:IntParam                  {emit("IntParam");}
+| IntList ',' IntParam            {emit("IntList ,");}
+;
+
+ApproxnumList:ApproxnumParam         {emit("ApproxnumParam");}
+| ApproxnumList ',' ApproxnumParam   {emit("ApproxnumList ,");}
 ;
 
 
 
+/* Return Clause */
 
-
-return_clause: RETURN distinct_opt return_expr_list order_by_clause limit_clause EOL {emit("RETURN ");}
+return_clause: RETURN distinct_opt return_expr_list order_by_clause limit_clause {emit("RETURN ");}
 
 return_expr_list:return_expr /* [name] OR [a,b,c] */    {emit("return_expr");}
 | return_expr_list ',' return_expr   {emit(" , ");}

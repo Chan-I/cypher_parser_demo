@@ -54,7 +54,6 @@ FALSE   { yylval.intval = 0; return BOOL; }
 
 
 
-
  /* string*/
 '(\\.|''|[^'\n])*'  |
 \"(\\.|\"\"|[^"\n])*\"  { yylval.strval = strdup(yytext); return STRING; }
@@ -66,6 +65,10 @@ FALSE   { yylval.intval = 0; return BOOL; }
 "<="    { yylval.subtok = 5; return COMPARISON; }
 "<"     { yylval.subtok = 1; return COMPARISON; }
 "<>"    { yylval.subtok = 3; return COMPARISON; }
+
+"->"    {yylval.strval = strdup(yytext); return RIGHTARROW;}
+"<-"    {yylval.strval = strdup(yytext); return LEFTARROW;}
+
 
 [-+*/%(){}.:;,\[\]<>]  { return  yytext[0]; }
 

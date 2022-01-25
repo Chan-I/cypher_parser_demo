@@ -79,7 +79,7 @@ FALSE   { yylval.intval = 0; return BOOL; }
 "//"[ \t].*	;
 
     /* everything else */
-[ \t]   ;
+[ \t\r\f]   ;
 \n              { return EOL; }
 .               { yyerror("mystery character '%c'", *yytext); }
 

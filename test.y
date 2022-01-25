@@ -16,6 +16,9 @@ void emit(char *s, ...);
     int subtok;
 	
 	struct ast *a;
+
+
+	const char* keyword;
 }
 
 %token <intval> INTNUM
@@ -39,58 +42,49 @@ void emit(char *s, ...);
 %left '(' ')'
 %left '.'
 
-%token MATCH
-%token EOL
-%token RETURN
-%token DESC
-%token ASC
-%token DISTINCT
-%token ORDER
-%token BY
-%token LIMIT
-%token AS
-%token IS
-%token ALL
-%token MERGE
-%token ON
-%token WHERE
-%token WITH
-%token UNIONS
-%token AND
-%token ENDS
-%token IN
-%token NOT
-%token OR
-%token XOR
-%token NULLX
-%token COUNT
-%token EXISTS
-%token ANY
-%token CONTAINS
+%token <keyword> 
+	ALL AND ANY AS ASC 
+	BY 
+	CONTAINS COUNT 
+	DESC DISTINCT 
+	ENDS EOL EXISTS 
+	IN IS 
+	LIMIT 
+	MATCH MERGE 
+	NOT NULLX 
+	ON OR ORDER 
+	RETURN 
+	UNIONS 
+	WHERE WITH 
+	XOR 
 
 
 
 // %type <a> exp factor term
-%type <strval> ColName OptAsAlias LimitClause AscDescOpt OrderByClause DistinctOpt
-%type <strval> ReturnExpr ReturnExprList FuncOpt  
-
-%type <strval> WhereClause WhereExpression ComparisonExpression
-%type <strval> Expression PartialComparisonExpression Literal FilterExpression INExpression
-%type <strval> NumberLiteral StringList IntList ApproxnumList StringParam IntParam ApproxnumParam
-%type <strval> match_clause Pattern PatternPart AnonymousPatternPart PatternElement
-%type <strval> NodePattern PatternElementChainClause PatternElementChain IntegerLiteralPattern
-%type <strval> RelationshipPattern Variable_Pattern NodeLabelsPattern PropertiesPattern NodeLabels NodeLabel RelationshipTypePattern
-%type <strval> MapLiteral MapLiteralClause MapLiteralPattern MapLiteralPatternPart PropertyKey RelationshipDetail
-%type <strval> RelTypeName RelTypeNamePattern IntegerLiteralPatternPart IntegerLiteralColonPatternPart
+%type <strval> AnonymousPatternPart ApproxnumList ApproxnumParam AscDescOpt
+%type <strval> ColName ComparisonExpression
+%type <strval> DistinctOpt
+%type <strval> Expression
+%type <strval> FilterExpression FuncOpt
+%type <strval> INExpression IntList IntParam IntegerLiteralColonPatternPart IntegerLiteralPattern IntegerLiteralPatternPart
+%type <strval> LimitClause Literal
+%type <strval> MapLiteral MapLiteralClause MapLiteralPattern MapLiteralPatternPart MatchClause
+%type <strval> NodeLabel NodeLabels NodeLabelsPattern NodePattern NumberLiteral
+%type <strval> OptAsAlias OrderByClause
+%type <strval> PartialComparisonExpression Pattern PatternElement PatternElementChain PatternElementChainClause PatternPart PropertiesPattern PropertyKey 
+%type <strval> RelTypeName RelTypeNamePattern RelationshipDetail RelationshipPattern RelationshipTypePattern ReturnExpr ReturnExprList
+%type <strval> StringList StringParam
+%type <strval> Variable_Pattern
+%type <strval> WhereClause WhereExpression
 
 %start Cypher
 
 %%
 
-Cypher: match_clause WhereClause ReturnClause EOL     {emit("Cypher");}
+Cypher: MatchClause WhereClause ReturnClause EOL     {emit("Cypher");}
 /* Match Clause */
 
-match_clause: MATCH Pattern        {emit("match_clause");}
+MatchClause: MATCH Pattern        {emit("MatchClause");}
 ;
 
 Pattern:PatternPart                            {emit("Pattern");}

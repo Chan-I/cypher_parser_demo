@@ -1,7 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
 #include "test.h"
+
 struct ast *
 newast(int nodetype, struct ast *l, struct ast *r)
 { 

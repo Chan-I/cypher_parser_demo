@@ -2,8 +2,6 @@
 
 %{
 #include "test.tab.h"
-#include <stdarg.h>
-#include <string.h>
 
 void yyerror(const char *s, ...);
 int oldstate;

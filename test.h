@@ -8,7 +8,8 @@
 typedef enum NodeTag
 {
     T_Stmt,
-    T_Value
+    T_Value,
+    T_List
 }NodeTag;
 
 typedef struct Node
@@ -28,6 +29,68 @@ typedef struct Node
 #define makeNode(_type_) ((_type_ *)newNode(sizeof(_type_),T_##_type_))
 
 #define nodeTag(nodeptr) (((const Node *)(nodeptr))->type)
+
+#define NodeSetTag(nodeptr,t)	(((Node*)(nodeptr))->type = (t))  
+
+#define IsA(nodeptr,_type_)		(nodeTag(nodeptr) == T_##_type_)  /* IsA(stmt,T_Stmt)*/
+
+
+
+/* List Structor */
+typedef struct ListCell ListCell;
+
+typedef struct List
+{
+  NodeTag   type;   /* T_List T_IntList .... */
+  int       length; /* length of this list */
+  ListCell  *head;
+  ListCell  *tail;
+}List;
+
+struct ListCell
+{
+  union
+  {
+    void    *ptr_value;   /* data */
+    int     int_value;
+  }       data;
+  ListCell    *next;  
+};
+
+
+#define NIL						((List *) NULL)
+#define lfirst(lc)    ((lc)->data.ptr_value)
+
+static inline ListCell *
+list_head(const List *l)
+{
+	return l ? l->head : NULL;
+}
+
+static inline ListCell *
+list_tail(List *l)
+{
+	return l ? l->tail : NULL;
+}
+
+static inline int
+list_length(const List *l)
+{
+	return l ? l->length : 0;
+}
+
+#define list_make1(x1)      lcons(x1, NIL)
+#define IsPointerList(l)    ((l) == NIL || IsA((l), List))
+
+List *lcons(void *datum, List *list);
+static List *new_list(NodeTag type);
+static void new_head_cell(List *list);
+static void new_tail_cell(List *list);
+List *lappend(List *list, void *datum);
+
+
+
+
 
 
 
@@ -60,3 +123,4 @@ double eval(struct ast *);
 
 /* delete and free an AST */
 void treefree(struct ast *);
+

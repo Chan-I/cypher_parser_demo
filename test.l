@@ -1,4 +1,4 @@
-%option noyywrap yylineno case-insensitive 
+%option noyywrap yylineno case-insensitive nodefault
 
 %{
 #include "test.tab.h"
@@ -74,13 +74,18 @@ FALSE   { yylval.intval = 0; return BOOL; }
 
 ".."    { yylval.strval = strdup(yytext); return PPOINT; }
 
-    /* comments */
-#.*		;
-"//"[ \t].*	;
-
-    /* everything else */
 [ \t\r\f]   ;
 \n              { return EOL; }
+
+    /* comments */
+#.*		        ;
+"//".*	        ;
+"/*"            {oldstate = YY_START; BEGIN COMMENT;}
+<COMMENT>"*/"   {BEGIN oldstate;}
+<COMMENT>.|\n   ;
+<COMMENT><<EOF>>    {yyerror("unclosed comment");}
+
+    /* everything else */
 .               { yyerror("mystery character '%c'", *yytext); }
 
 %%

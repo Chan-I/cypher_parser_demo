@@ -62,7 +62,7 @@ void emit(char *s, ...);
 
 // %type <a> exp factor term
 %type <strval> AnonymousPatternPart ApproxnumList ApproxnumParam AscDescOpt
-%type <strval> ColName ComparisonExpression
+%type <strval> ColName ComparisonExpression Cypher CypherClause
 %type <strval> DistinctOpt
 %type <strval> Expression
 %type <strval> FilterExpression FuncOpt
@@ -80,8 +80,12 @@ void emit(char *s, ...);
 %start Cypher
 
 %%
+Cypher:					/* nil */	{}
+| Cypher EOL			{printf(">");}
+| Cypher CypherClause EOL		{printf(">");}
+;
 
-Cypher: MatchClause WhereClause ReturnClause EOL     {emit("Cypher");}
+CypherClause: MatchClause WhereClause ReturnClause     {emit("Cypher");}
 /* Match Clause */
 
 MatchClause: MATCH Pattern        {emit("MatchClause");}

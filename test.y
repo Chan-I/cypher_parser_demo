@@ -1,20 +1,29 @@
+%parse-param {ReturnStmtClause *rt}
 %{
 #include"test.h"
 
 void emit(char *s, ...);
+char colNameAttr[MAX_COLNAME_LENGTH];
+char attrNum[MAX_COLNAME_LENGTH];
 %}
 
 
 %union {
+	char *keyword;		/* type for keywords*/
+
     int intval;
     double floatval;
     char *strval;
     int subtok;
-	
+
 	struct ast *a;
 
-
-	const char* keyword;
+	Node	*node;
+	List 	*list;
+	OrderByStmtClause *odb;
+	ReturnCols	*rtcols;
+	ReturnStmtClause	*rtstmtcls;	
+	
 }
 
 %token <intval> INTNUM
@@ -38,42 +47,38 @@ void emit(char *s, ...);
 %left '(' ')'
 %left '.'
 
-%token <keyword> 
-	ALL AND ANY AS ASC 
-	BY 
-	CONTAINS COUNT 
-	DESC DISTINCT 
-	ENDS EOL EXISTS 
-	IN IS 
-	LIMIT 
-	MATCH MERGE 
-	NOT NULLX 
-	ON OR ORDER 
-	RETURN 
-	UNIONS 
-	WHERE WITH 
-	XOR 
+%token <keyword> ALL AND ANY AS ASC BY CONTAINS COUNT DESC DISTINCT ENDS EOL EXISTS 
+%token <keyword> IN IS LIMIT MATCH MERGE NOT NULLX ON OR ORDER RETURN UNIONS WHERE WITH XOR 
 
 
 
 // %type <a> exp factor term
-%type <strval> AnonymousPatternPart ApproxnumList ApproxnumParam AscDescOpt
+%type <rtstmtcls> ReturnClause 
+%type <list> ReturnExprList
+%type <node> ReturnExpr 
+%type <intval> LimitClause AscDescOpt DistinctOpt
+%type <odb> OrderByClause
+
+%type <strval> AnonymousPatternPart ApproxnumList ApproxnumParam 
 %type <strval> ColName ComparisonExpression Cypher CypherClause
-%type <strval> DistinctOpt
+
+
 %type <strval> Expression
 %type <strval> FilterExpression FuncOpt
 %type <strval> INExpression IntList IntParam IntegerLiteralColonPatternPart IntegerLiteralPattern IntegerLiteralPatternPart
-%type <strval> LimitClause Literal
+%type <strval>  Literal
 %type <strval> MapLiteral MapLiteralClause MapLiteralPattern MapLiteralPatternPart MatchClause
 %type <strval> NodeLabel NodeLabels NodeLabelsPattern NodePattern NumberLiteral
-%type <strval> OptAsAlias OrderByClause
+%type <strval> OptAsAlias 
 %type <strval> PartialComparisonExpression Pattern PatternElement PatternElementChain PatternElementChainClause PatternPart PropertiesPattern PropertyKey 
-%type <strval> RelTypeName RelTypeNamePattern RelationshipDetail RelationshipPattern RelationshipTypePattern ReturnExpr ReturnExprList
+%type <strval> RelTypeName RelTypeNamePattern RelationshipDetail RelationshipPattern RelationshipTypePattern 
 %type <strval> StringList StringParam
 %type <strval> Variable_Pattern
 %type <strval> WhereClause WhereExpression
 
-%start Cypher
+
+
+%start ReturnClause
 
 %%
 Cypher:					/* nil */	{}
@@ -233,8 +238,8 @@ Literal:IntParam                 {emit("Literal");}
 | ColName                      {emit("ColName");}
 ;
 
-NumberLiteral:INTNUM        {emit("%d",$1);}
-| APPROXNUM                 {emit("%f",$1);}
+NumberLiteral:INTNUM        { sprintf(attrNum,"%ld",$1); $$ = attrNum; attrNum[0] = 0;}
+| APPROXNUM                 { sprintf(attrNum,"%lf",$1); $$ = attrNum; attrNum[0] = 0;}
 ;
 
 INExpression:                   {emit("no INExpression");}
@@ -268,19 +273,105 @@ ApproxnumList:ApproxnumParam         {emit("ApproxnumParam");}
 
 /* Return Clause */
 
-ReturnClause: RETURN DistinctOpt ReturnExprList OrderByClause LimitClause {emit("RETURN ");}
+ReturnClause: RETURN DistinctOpt ReturnExprList OrderByClause LimitClause EOL
+				{
+					emit("ReturnClause");
+					// ReturnStmtClause *rt = makeNode(ReturnStmtClause);
+					
+					rt->hasDistinct = $2;   /* distinct */
 
-ReturnExprList:ReturnExpr /* [name] OR [a,b,c] */    {emit("ReturnExpr");}
-| ReturnExprList ',' ReturnExpr   {emit(" , ");}
+					rt->returnCols = $3;
+					
+					if((rt->odb=$4) != NULL)	/* order by*/
+						rt->hasOrderBy = 1;
+					else	
+						rt->hasOrderBy = 0;
+
+					if ((rt->limitNum = $5)<0)	/* limit num*/
+						rt->hasLimit = false;
+					else
+						rt->hasLimit = true;
+					
+					// $$ = rt;
+				}
+
+ReturnExprList:ReturnExpr /* [name] OR [a,b,c] */    {	$$ = list_make1($1); }
+| ReturnExprList ',' ReturnExpr   {	$$ = lappend($1,$3); }
 ;
 
-ReturnExpr:ColName OptAsAlias {emit("ReturnExpr:col");}
-| FuncOpt OptAsAlias             {emit("ReturnExpr:func");}
-| NumberLiteral OptAsAlias          {emit("ReturnExpr:digital");}
+ReturnExpr:ColName OptAsAlias 
+							{
+								ReturnCols *cols = makeNode(ReturnCols);
+								cols->hasFunc = 0;
+								cols->hasDistinct = 0;
+								emit("%s",$1);
+								strncpy(cols->colname,$1,MAX_COLNAME_LENGTH);
+								if($2 != NULL)
+								{
+									strncpy(cols->colAlias,$2,MAX_COLNAME_LENGTH);
+									cols->hasAlias = 1;
+								} else
+									cols->hasAlias = 0;
+								
+								$$ = (Node *)cols;
+							}
+| NAME '(' ColName ')' OptAsAlias             
+							{
+								ReturnCols *cols = makeNode(ReturnCols);
+								cols->hasFunc = 1;
+								cols->hasDistinct = 0;
+								if($5 != NULL)
+								{
+									strncpy(cols->colAlias,$5,MAX_COLNAME_LENGTH);
+									cols->hasAlias = 1;
+								} else
+									cols->hasAlias = 0;
+
+								strncpy(cols->funName,$1,MAX_COLNAME_LENGTH);
+								
+								strncpy(cols->colname,$3,MAX_COLNAME_LENGTH);
+								$$ = (Node *)cols;
+							}
+| COUNT '(' DistinctOpt ColName ')' OptAsAlias
+							{
+								ReturnCols *cols = makeNode(ReturnCols);
+			
+								if($6 != NULL)
+								{
+									strncpy(cols->colAlias,$6,MAX_COLNAME_LENGTH);
+									cols->hasAlias = 1;
+								} else
+									cols->hasAlias = 0;
+
+								strcpy(cols->funName,"COUNT"); // ?????
+								cols->hasFunc = 1;
+								cols->hasDistinct = $3;
+
+								strncpy(cols->colname,$4,MAX_COLNAME_LENGTH);
+								$$ = (Node *)cols;
+							}
+| NumberLiteral OptAsAlias          
+							{
+								ReturnCols *cols = makeNode(ReturnCols);
+								
+								cols->hasFunc = 0;
+								cols->hasDistinct = 0;
+								strncpy(cols->colname,$1,MAX_COLNAME_LENGTH);
+
+								if($2 != NULL) 
+								{
+									strncpy(cols->colAlias,$2,MAX_COLNAME_LENGTH);
+									cols->hasAlias = 1;
+								} else
+									cols->hasAlias = 0;
+								$$ = (Node *)cols;
+							}
 ; /* [ ... as b] OR  [...]*/
 
-OptAsAlias: /* no AS Alias*/ {}
-| AS NAME       {emit("AS %s",$2); free($2);}
+
+
+OptAsAlias: /* no AS Alias*/ 	{$$ = NULL;}
+| AS NAME       				{$$ = $2;}
 ;
 
 CountFuncOpt:COUNT '(' DistinctOpt ColName ')'    /* count(a.id) */      {emit("COUNT");} 
@@ -295,25 +386,43 @@ ExistsOpt:EXISTS '(' ColName ')'   /* exists(a.id) */   {emit("EXISTS");}
 ;
 
 
-OrderByClause: /* no orderby*/ {}
-| ORDER BY ColName AscDescOpt    {emit("ORDER BY ");}
+OrderByClause: /* no orderby*/ {$$ = NULL;}
+| ORDER BY ColName AscDescOpt    
+					{
+						$$ = makeNode(OrderByStmtClause);
+						$$->ascDesc = $4;
+
+						strncpy($$->orderByColname, $3 ,MAX_COLNAME_LENGTH); 
+
+						
+					}
 ;
 
-DistinctOpt:   {emit("no DISTINCT");}       
-| DISTINCT      {emit("DISTINCT");}
+DistinctOpt:   {$$ = 0;}       
+| DISTINCT      {$$ = 1;}
 ;
 
-AscDescOpt:/* no ASC DESC */ {}
-| ASC       {emit("ASC ");}
-| DESC      {emit("DESC ");}
+AscDescOpt:/* no ASC DESC */ {$$ = -1;}
+| ASC       {$$ = 'A';}
+| DESC      {$$ = 'D';}
 ;
 
-LimitClause:/* no limit */ {}
-| LIMIT INTNUM  {emit("LIMIT %d\n",$2); }
+LimitClause:/* no limit */ {$$ = -1;}
+| LIMIT INTNUM  {$$ = $2; }
 ;
 
-ColName:NAME {emit("%s ",$1);free($1);}
-| NAME '.' NAME  {emit("%s.%s ",$1,$3); free($1); free($3);}
+ColName:NAME 
+				{
+					emit("ColName");$$ = $1;
+				}
+| NAME '.' NAME  
+				{
+					emit("ColName");
+					sprintf(colNameAttr,"%s.%s",$1,$3);
+					strncpy($$,colNameAttr,MAX_COLNAME_LENGTH); 
+					// $$ = colNameAttr;
+					colNameAttr[0] = 0;
+				}
 ;
 
 

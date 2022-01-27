@@ -5,11 +5,15 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
+#define MAX_COLNAME_LENGTH 64
+
 typedef enum NodeTag
 {
-    T_Stmt,
-    T_Value,
-    T_List
+    T_Node,
+    T_List,
+    T_ReturnStmtClause,
+    T_ReturnCols,
+    T_OrderByStmtClause
 }NodeTag;
 
 typedef struct Node
@@ -36,16 +40,9 @@ typedef struct Node
 
 
 
+
 /* List Structor */
 typedef struct ListCell ListCell;
-
-typedef struct List
-{
-  NodeTag   type;   /* T_List T_IntList .... */
-  int       length; /* length of this list */
-  ListCell  *head;
-  ListCell  *tail;
-}List;
 
 struct ListCell
 {
@@ -56,6 +53,15 @@ struct ListCell
   }       data;
   ListCell    *next;  
 };
+
+typedef struct List
+{
+  NodeTag   type;   /* T_List T_IntList .... */
+  int       length; /* length of this list */
+  ListCell  *head;
+  ListCell  *tail;
+}List;
+
 
 
 #define NIL						((List *) NULL)
@@ -91,8 +97,36 @@ List *lappend(List *list, void *datum);
 
 
 
+typedef struct OrderByStmtClause{
+  int ascDesc ;               /* asc or desc */
+  char orderByColname[MAX_COLNAME_LENGTH]; /* order by ID ...*/ 
+} OrderByStmtClause;
 
+typedef struct ReturnCols{
+  NodeTag type;
 
+  bool hasAlias ;
+  bool hasFunc ;
+  bool hasDistinct;
+  char colname[MAX_COLNAME_LENGTH];
+  char funName[MAX_COLNAME_LENGTH];
+  char colAlias[MAX_COLNAME_LENGTH];
+
+} ReturnCols;
+
+typedef struct ReturnStmtClause{
+  NodeTag type;
+
+  bool hasOrderBy ;
+  bool hasDistinct ;
+  bool hasLimit ;
+
+  int limitNum ;      /* limit 4*/
+
+  OrderByStmtClause *odb;
+
+  List *returnCols;
+} ReturnStmtClause;
 
 
 /* nodes in the Abstract Syntax Tree */

@@ -191,9 +191,11 @@ yyerror(const char *s, ...)
   fprintf(stderr, "\n"); 
 }
 
-
+int
 main(int ac, char **av)
 {
+  ReturnStmtClause rt;
 	printf("> ");
-  return yyparse();
+  yyparse(&rt);
+  return 0;
 } /* main */

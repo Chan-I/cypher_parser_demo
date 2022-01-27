@@ -22,5 +22,5 @@ test.lex.c:test.l
 clean:
 	rm -f test \
 	*.lex.c *.lex.h *.tab.h *.tab.c \
-	*.output
+	*.output *.o
 

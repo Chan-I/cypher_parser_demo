@@ -249,17 +249,17 @@ ReturnStmtPrint(ReturnStmtClause *rt, char *in)
     if (odb->ascDesc == 'A')
     {
       sprintf(str,"\nORDER BY %s ASC ",odb->orderByColname);
-      str += strlen(odb->orderByColname) + 14;
+      str += strlen(odb->orderByColname) + 15;
     }
     else if (odb->ascDesc == 'D')
     {
       sprintf(str,"\nORDER BY %s DESC ",odb->orderByColname);
-      str += strlen(odb->orderByColname) + 15;
+      str += strlen(odb->orderByColname) + 16;
     }
     else
     {
       sprintf(str,"\nORDER BY %s ",odb->orderByColname);  
-      str += strlen(odb->orderByColname) + 13;
+      str += strlen(odb->orderByColname) + 11;
     }
   }
   if(rt->hasLimit)

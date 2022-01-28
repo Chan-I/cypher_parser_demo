@@ -238,8 +238,8 @@ Literal:IntParam                 {emit("Literal");}
 | ColName                      {emit("ColName");}
 ;
 
-NumberLiteral:INTNUM        { sprintf(attrNum,"%ld",$1); $$ = attrNum; attrNum[0] = 0;}
-| APPROXNUM                 { sprintf(attrNum,"%lf",$1); $$ = attrNum; attrNum[0] = 0;}
+NumberLiteral:INTNUM        { sprintf(attrNum,"%ld",$1); $$ = attrNum; }
+| APPROXNUM                 { sprintf(attrNum,"%lf",$1); $$ = attrNum; }
 ;
 
 INExpression:                   {emit("no INExpression");}

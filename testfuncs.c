@@ -175,7 +175,7 @@ emit(char *s, ...)
 }
 
 void 
-yyerror(ReturnStmtClause *in, const char *s, ...)  /* change this type */
+yyerror(const char *s, ...)  /* change this type */
 { 
   extern yylineno; 
  

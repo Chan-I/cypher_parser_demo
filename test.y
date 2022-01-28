@@ -5,9 +5,13 @@
 void emit(char *s, ...);
 char colNameAttr[MAX_COLNAME_LENGTH];
 char attrNum[MAX_COLNAME_LENGTH];
+
+#define YYPARSE_PARAM scanner
+#define YYLEX_PARAM   scanner
 %}
 
-
+%locations
+%pure-parser
 %union {
 	char *keyword;		/* type for keywords*/
 

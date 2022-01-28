@@ -77,7 +77,7 @@ lappend(List *list, void *datum)
 
 
 
-//--------------------------------------------------------------------
+/*/--------------------------------------------------------------------
 struct ast *
 newast(int nodetype, struct ast *l, struct ast *r)
 { 
@@ -143,19 +143,16 @@ treefree(struct ast *a)
 {
   switch(a->nodetype) {
 
-    /* two subtrees */
   case '+':
   case '-':
   case '*':
   case '/':
     treefree(a->r);
 
-    /* one subtree */
   case '|':
   case 'M':
     treefree(a->l);
 
-    /* no subtree */
   case 'K':
     free(a);
     break;
@@ -163,12 +160,11 @@ treefree(struct ast *a)
   default: printf("internal error: free bad node %c\n", a->nodetype);
   }
 }
-
+*/
 
 void
 emit(char *s, ...)
 {
-  extern yylineno;
 
   va_list ap;
   va_start(ap, s);
@@ -179,7 +175,7 @@ emit(char *s, ...)
 }
 
 void 
-yyerror(const char *s, ...) 
+yyerror(ReturnStmtClause *in, const char *s, ...) 
 { 
   extern yylineno; 
  

@@ -145,7 +145,7 @@ struct numval {
 
 
 extern int yylineno; /* from lexer */
-void yyerror( const char *s, ...);
+void yyerror(ReturnStmtClause *in,  const char *s, ...);
 
 /* build an AST */
 struct ast *newast(int nodetype, struct ast *l, struct ast *r);

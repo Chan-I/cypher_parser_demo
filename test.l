@@ -4,14 +4,16 @@
 #include "test.h"
 #include "test.tab.h"
 
-void yyerror(const char *s, ...);
+void yyerror(ReturnStmtClause *in, const char *s, ...);
 int oldstate;
+ReturnStmtClause *in;
 %}
 
 %x COMMENT
 %s BTWMODE
 
 %%
+
 
 AS          { return AS;         }
 ANY         { return ANY;        }
@@ -82,9 +84,8 @@ FALSE   { yylval.intval = 0; return BOOL; }
 "/*"            {oldstate = YY_START; BEGIN COMMENT;}
 <COMMENT>"*/"   {BEGIN oldstate;}
 <COMMENT>.|\n   ;
-<COMMENT><<EOF>>    {yyerror("unclosed comment");}
 
     /* everything else */
-.               { yyerror("mystery character '%c'", *yytext); }
+.               { yyerror(in,"mystery character '%c'", *yytext); }
 
 %%

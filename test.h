@@ -65,7 +65,8 @@ typedef struct List
 
 
 #define NIL						((List *) NULL)
-#define lfirst(lc)    ((lc)->data.ptr_value)
+#define lnext(lc)				((lc)->next)
+#define lfirst(lc)				((lc)->data.ptr_value)
 
 static inline ListCell *
 list_head(const List *l)
@@ -87,6 +88,8 @@ list_length(const List *l)
 
 #define list_make1(x1)      lcons(x1, NIL)
 #define IsPointerList(l)    ((l) == NIL || IsA((l), List))
+#define foreach(cell, l)	\
+	for ((cell) = list_head(l); (cell) != NULL; (cell) = lnext(cell))
 
 List *lcons(void *datum, List *list);
 static List *new_list(NodeTag type);
@@ -145,7 +148,7 @@ struct numval {
 
 
 extern int yylineno; /* from lexer */
-void yyerror(ReturnStmtClause *in,  const char *s, ...);
+void yyerror(ReturnStmtClause *in,  const char *s, ...); /*  need to chang this struct */
 
 /* build an AST */
 struct ast *newast(int nodetype, struct ast *l, struct ast *r);

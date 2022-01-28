@@ -6,7 +6,7 @@
 
 void yyerror(ReturnStmtClause *in, const char *s, ...);
 int oldstate;
-ReturnStmtClause *in;
+ReturnStmtClause *in; /*  需要为了yyerror 修改*/
 %}
 
 %x COMMENT

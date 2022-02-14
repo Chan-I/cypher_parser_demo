@@ -177,12 +177,11 @@ emit(char *s, ...)
 void 
 yyerror(const char *s, ...)  /* change this type */
 { 
-  extern yylineno; 
  
   va_list ap; 
   va_start(ap, s); 
  
-  fprintf(stderr, "%d: error: ", yylineno); 
+  fprintf(stderr, "error: "); 
   vfprintf(stderr, s, ap); 
   fprintf(stderr, "\n"); 
 }

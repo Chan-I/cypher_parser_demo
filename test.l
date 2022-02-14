@@ -1,5 +1,3 @@
-%option noyywrap yylineno case-insensitive nodefault bison-bridge
-
 %top{
 #include "test.h"
 #include "test.tab.h"
@@ -11,6 +9,17 @@ void yyerror(const char *s, ...);
 int oldstate;
 
 %}
+
+%option reentrant
+%option 8bit
+%option noyywrap 
+%option nodefault
+%option noinput
+%option case-insensitive
+%option nodefault
+%option bison-bridge
+%option warn
+%option never-interactive
 
 %x COMMENT
 %s BTWMODE

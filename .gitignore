@@ -6,3 +6,4 @@ test
 *.tab.h
 *.yy.c
 *.yy.h
+*.backup

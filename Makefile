@@ -15,12 +15,12 @@ test.tab.c:test.y
 	bison -d $^
 
 test.lex.c:test.l
-	flex -o $@ $^
+	flex -b -CF -p  -o $@ $^
 
 
 
 clean:
 	rm -f test \
 	*.lex.c *.lex.h *.tab.h *.tab.c \
-	*.output *.o
+	*.output *.o *.backup
 

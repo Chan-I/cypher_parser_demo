@@ -1,8 +1,11 @@
 %option noyywrap yylineno case-insensitive nodefault bison-bridge
 
-%{
+%top{
 #include "test.h"
 #include "test.tab.h"
+}
+
+%{
 
 void yyerror(const char *s, ...);
 int oldstate;

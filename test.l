@@ -10,16 +10,15 @@ int oldstate;
 
 %}
 
-%option reentrant
+
+%option yylineno
 %option 8bit
 %option noyywrap 
 %option nodefault
-%option noinput
 %option case-insensitive
-%option nodefault
 %option bison-bridge
-%option warn
-%option never-interactive
+
+
 
 %x COMMENT
 %s BTWMODE

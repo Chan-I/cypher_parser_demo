@@ -5,14 +5,15 @@ void emit(char *s, ...);
 char colNameAttr[MAX_COLNAME_LENGTH];
 char attrNum[MAX_COLNAME_LENGTH];
 
-#define YYPARSE_PARAM scanner
-#define YYLEX_PARAM   scanner
+
 %}
 
 %parse-param {ReturnStmtClause *rt}
 // %lex-param {core_yyscan_t yyscanner}
 %locations
 %pure-parser
+%error-verbose
+%expect 0
 %union {
 	char *keyword;		/* type for keywords*/
 
@@ -435,6 +436,20 @@ ColName:NAME
 
 %%
 
+
+
+void 
+yyerror(YYLTYPE *yylloc, ReturnStmtClause *rt, const char *s, ...) 
+{ 
+  yy_error(s);
+  va_list ap; 
+  va_start(ap, s); 
+ 
+  fprintf(stderr, "error: "); 
+  vfprintf(stderr, s, ap); 
+  fprintf(stderr, "\n"); 
+}
+
 void
 emit(char *s, ...)
 {
@@ -446,19 +461,6 @@ emit(char *s, ...)
   vfprintf(stdout, s, ap);
   printf("\n");
 }
-
-void 
-yyerror(ReturnStmtClause *rt, const char *s, ...)  /* change this type */
-{ 
- 
-  va_list ap; 
-  va_start(ap, s); 
- 
-  fprintf(stderr, "error: "); 
-  vfprintf(stderr, s, ap); 
-  fprintf(stderr, "\n"); 
-}
-
 
 List *
 lcons(void *datum, List *list)

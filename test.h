@@ -56,7 +56,6 @@ typedef struct core_yy_extra_type
 typedef void *core_yyscan_t;
 
 
-
 typedef enum NodeTag
 {
     T_Node,

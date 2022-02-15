@@ -5,11 +5,10 @@
 
 %{
 
-void yy_error(const char *s, ...);
+void yy_error(const char *msg);
 int oldstate;
 
 %}
-
 
 %option yylineno
 %option 8bit
@@ -97,19 +96,13 @@ FALSE   { yylval->intval = 0; return BOOL; }
 <COMMENT>.|\n   ;
 
     /* everything else */
-.               { yy_error("mystery character '%c'", *yytext); }
+.               { yy_error(yytext); }
 
 %%
 
 
 void 
-yy_error(const char *s, ...)  /* change this type */
+yy_error(const char *msg)  /* change this type */
 { 
- 
-  va_list ap; 
-  va_start(ap, s); 
- 
-  fprintf(stderr, "error: "); 
-  vfprintf(stderr, s, ap); 
-  fprintf(stderr, "\n"); 
+    printf("%d:  %s  at  '%s'  \n",yylineno,msg,yytext); 
 }

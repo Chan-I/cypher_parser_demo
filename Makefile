@@ -9,7 +9,7 @@
 all:	test
 
 test:testfuncs.c test.tab.c test.lex.c
-	cc -g -O0 -o $@ $^
+	cc -g -O0 -o $@ $^ -lfl
 
 test.tab.c:test.y
 	bison -d $^

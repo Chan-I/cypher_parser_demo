@@ -277,9 +277,9 @@ ApproxnumList:ApproxnumParam         {emit("ApproxnumParam");}
 
 /* Return Clause */
 
-ReturnClause: RETURN DistinctOpt ReturnExprList OrderByClause LimitClause EOL
+ReturnClause:  RETURN DistinctOpt ReturnExprList OrderByClause LimitClause ';'
 				{
-					emit("ReturnClause");
+					// emit("ReturnClause");
 					// ReturnStmtClause *rt = makeNode(ReturnStmtClause);
 					
 					rt->hasDistinct = $2;   /* distinct */
@@ -295,9 +295,12 @@ ReturnClause: RETURN DistinctOpt ReturnExprList OrderByClause LimitClause EOL
 						rt->hasLimit = false;
 					else
 						rt->hasLimit = true;
-					
+
+					/* Only run yyparse one time */
+					return 0;
 					// $$ = rt;
 				}
+;
 
 ReturnExprList:ReturnExpr /* [name] OR [a,b,c] */    {	$$ = list_make1($1); }
 | ReturnExprList ',' ReturnExpr   {	$$ = lappend($1,$3); }
@@ -308,7 +311,7 @@ ReturnExpr:ColName OptAsAlias
 								ReturnCols *cols = makeNode(ReturnCols);
 								cols->hasFunc = 0;
 								cols->hasDistinct = 0;
-								emit("%s",$1);
+								// emit("%s",$1);
 								strncpy(cols->colname,$1,MAX_COLNAME_LENGTH);
 								if($2 != NULL)
 								{
@@ -417,11 +420,12 @@ LimitClause:/* no limit */ {$$ = -1;}
 
 ColName:NAME 
 				{
-					emit("ColName");$$ = $1;
+					// emit("ColName");
+					$$ = $1;
 				}
 | NAME '.' NAME  
 				{
-					emit("ColName");
+					// emit("ColName");
 					sprintf(colNameAttr,"%s.%s",$1,$3);
 					strncpy($$,colNameAttr,MAX_COLNAME_LENGTH); 
 					// $$ = colNameAttr;

@@ -5,7 +5,7 @@
 
 %{
 
-void yyerror(const char *s, ...);
+void yy_error(const char *s, ...);
 int oldstate;
 
 %}
@@ -97,6 +97,19 @@ FALSE   { yylval->intval = 0; return BOOL; }
 <COMMENT>.|\n   ;
 
     /* everything else */
-.               { yyerror("mystery character '%c'", *yytext); }
+.               { yy_error("mystery character '%c'", *yytext); }
 
 %%
+
+
+void 
+yy_error(const char *s, ...)  /* change this type */
+{ 
+ 
+  va_list ap; 
+  va_start(ap, s); 
+ 
+  fprintf(stderr, "error: "); 
+  vfprintf(stderr, s, ap); 
+  fprintf(stderr, "\n"); 
+}

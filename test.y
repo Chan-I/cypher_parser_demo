@@ -1,4 +1,3 @@
-%parse-param {ReturnStmtClause *rt}
 %{
 #include"test.h"
 
@@ -10,6 +9,8 @@ char attrNum[MAX_COLNAME_LENGTH];
 #define YYLEX_PARAM   scanner
 %}
 
+%parse-param {ReturnStmtClause *rt}
+// %lex-param {core_yyscan_t yyscanner}
 %locations
 %pure-parser
 %union {
@@ -447,7 +448,7 @@ emit(char *s, ...)
 }
 
 void 
-yyerror(const char *s, ...)  /* change this type */
+yyerror(ReturnStmtClause *rt, const char *s, ...)  /* change this type */
 { 
  
   va_list ap; 

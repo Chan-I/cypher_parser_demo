@@ -6,7 +6,7 @@
 #include <stdarg.h>
 
 #define MAX_COLNAME_LENGTH 64
-
+//------------------------------------------------------------------------------
 typedef enum NodeTag
 {
     T_Node,
@@ -29,18 +29,14 @@ typedef struct Node
      _result->type = (tag);             /*设置TypeTag */ \
      _result;                   /*返回值*/\
 })
-
 #define makeNode(_type_) ((_type_ *)newNode(sizeof(_type_),T_##_type_))
-
 #define nodeTag(nodeptr) (((const Node *)(nodeptr))->type)
-
 #define NodeSetTag(nodeptr,t)	(((Node*)(nodeptr))->type = (t))  
-
 #define IsA(nodeptr,_type_)		(nodeTag(nodeptr) == T_##_type_)  /* IsA(stmt,T_Stmt)*/
 
 
 
-
+//------------------------------------------------------------------------------
 /* List Structor */
 typedef struct ListCell ListCell;
 
@@ -68,23 +64,9 @@ typedef struct List
 #define lnext(lc)				((lc)->next)
 #define lfirst(lc)				((lc)->data.ptr_value)
 
-static inline ListCell *
-list_head(const List *l)
-{
-	return l ? l->head : NULL;
-}
-
-static inline ListCell *
-list_tail(List *l)
-{
-	return l ? l->tail : NULL;
-}
-
-static inline int
-list_length(const List *l)
-{
-	return l ? l->length : 0;
-}
+static inline ListCell * list_head(const List *l){	return l ? l->head : NULL;}
+static inline ListCell * list_tail(List *l)	{	return l ? l->tail : NULL;}
+static inline int list_length(const List *l){	return l ? l->length : 0;}
 
 #define list_make1(x1)      lcons(x1, NIL)
 #define IsPointerList(l)    ((l) == NIL || IsA((l), List))
@@ -97,7 +79,7 @@ static void new_head_cell(List *list);
 static void new_tail_cell(List *list);
 List *lappend(List *list, void *datum);
 
-
+//-------------------------------------------------------------------------------
 
 
 typedef struct OrderByStmtClause{
@@ -119,45 +101,13 @@ typedef struct ReturnCols{
 
 typedef struct ReturnStmtClause{
   NodeTag type;
-
   bool hasOrderBy ;
   bool hasDistinct ;
   bool hasLimit ;
-
   int limitNum ;      /* limit 4*/
-
   OrderByStmtClause *odb;
-
   List *returnCols;
+
 } ReturnStmtClause;
 
-
-/* nodes in the Abstract Syntax Tree */
-struct ast {
-  int nodetype;
-  struct ast *l;
-  struct ast *r;
-};
-
-struct numval {
-  int nodetype;         /* type K */
-  double number;
-};
-
-
-
-
-// extern int yylineno; /* from lexer */
-// void yyerror(ReturnStmtClause *rt,  const char *s, ...); /*  need to chang this struct */
-
-/* build an AST */
-struct ast *newast(int nodetype, struct ast *l, struct ast *r);
-struct ast *newappnum(double d);
-struct ast *newintnum(int d);
-
-/* evaluate an AST */
-double eval(struct ast *);
-
-/* delete and free an AST */
-void treefree(struct ast *);
 

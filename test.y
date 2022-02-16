@@ -441,7 +441,6 @@ ColName:NAME
 void 
 yyerror(YYLTYPE *yylloc, ReturnStmtClause *rt, const char *s, ...) 
 { 
-  yy_error(s);
   va_list ap; 
   va_start(ap, s); 
  

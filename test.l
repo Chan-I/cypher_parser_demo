@@ -5,7 +5,6 @@
 
 %{
 
-void yy_error(const char *msg);
 int oldstate;
 
 %}
@@ -16,7 +15,6 @@ int oldstate;
 %option nodefault
 %option case-insensitive
 %option bison-bridge
-
 
 
 %x COMMENT
@@ -95,14 +93,4 @@ FALSE   { yylval->intval = 0; return BOOL; }
 <COMMENT>"*/"   {BEGIN oldstate;}
 <COMMENT>.|\n   ;
 
-    /* everything else */
-.               { yy_error(yytext); }
-
 %%
-
-
-void 
-yy_error(const char *msg)  /* change this type */
-{ 
-    printf("%d:  %s  at  '%s'  \n",yylineno,msg,yytext); 
-}

@@ -244,10 +244,6 @@ Literal:IntParam                 {emit("Literal");}
 | ColName                      {emit("ColName");}
 ;
 
-NumberLiteral:INTNUM        { sprintf(attrNum,"%ld",$1); $$ = attrNum; }
-| APPROXNUM                 { sprintf(attrNum,"%lf",$1); $$ = attrNum; }
-;
-
 INExpression:                   {emit("no INExpression");}
 | '[' StringList ']'            {emit("StringList");}
 | '[' IntList ']'               {emit("IntList");}
@@ -416,6 +412,10 @@ AscDescOpt:/* no ASC DESC */ {$$ = -1;}
 
 LimitClause:/* no limit */ {$$ = -1;}
 | LIMIT INTNUM  {$$ = $2; }
+;
+
+NumberLiteral:INTNUM        { sprintf(attrNum,"%ld",$1); $$ = attrNum; }
+| APPROXNUM                 { sprintf(attrNum,"%lf",$1); $$ = attrNum; }
 ;
 
 ColName:NAME 

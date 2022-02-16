@@ -7,55 +7,6 @@
 
 #define MAX_COLNAME_LENGTH 64
 
-typedef struct core_yy_extra_type
-{
-	/*
-	 * The string the scanner is physically scanning.  We keep this mainly so
-	 * that we can cheaply compute the offset of the current token (yytext).
-	 */
-	char	   *scanbuf;
-
-	/*
-	 * The keyword list to use.
-	 */
-	int			num_keywords;
-
-	/*
-	 * Scanner settings to use.  These are initialized from the corresponding
-	 * GUC variables by scanner_init().  Callers can modify them after
-	 * scanner_init() if they don't want the scanner's behavior to follow the
-	 * prevailing GUC settings.
-	 */
-	int			backslash_quote;
-	bool		escape_string_warning;
-	bool		standard_conforming_strings;
-
-	/*
-	 * literalbuf is used to accumulate literal values when multiple rules are
-	 * needed to parse a single literal.  Call startlit() to reset buffer to
-	 * empty, addlit() to add text.  NOTE: the string in literalbuf is NOT
-	 * necessarily null-terminated, but there always IS room to add a trailing
-	 * null at offset literallen.  We store a null only when we need it.
-	 */
-	char	   *literalbuf;		/* palloc'd expandable buffer */
-	int			literallen;		/* actual current string length */
-	int			literalalloc;	/* current allocated buffer size */
-
-	int			xcdepth;		/* depth of nesting in slash-star comments */
-	char	   *dolqstart;		/* current $foo$ quote start string */
-
-
-	/* state variables for literal-lexing warnings */
-	bool		warn_on_first_escape;
-	bool		saw_non_ascii;
-} core_yy_extra_type;
-
-/*
- * The type of yyscanner is opaque outside scan.l.
- */
-typedef void *core_yyscan_t;
-
-
 typedef enum NodeTag
 {
     T_Node,

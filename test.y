@@ -58,7 +58,7 @@ char attrNum[MAX_COLNAME_LENGTH];
 
 
 // %type <a> exp factor term
-%type <mod> stexps
+%type <mod> CypherClause
 %type <rtstmtcls> ReturnClause 
 %type <list> ReturnExprList
 %type <node> ReturnExpr 
@@ -66,7 +66,7 @@ char attrNum[MAX_COLNAME_LENGTH];
 %type <odb> OrderByClause
 
 %type <strval> AnonymousPatternPart ApproxnumList ApproxnumParam 
-%type <strval> ColName ComparisonExpression Cypher CypherClause
+%type <strval> ColName ComparisonExpression Cypher
 
 
 %type <strval> Expression
@@ -84,7 +84,7 @@ char attrNum[MAX_COLNAME_LENGTH];
 
 
 
-%start stexps
+%start CypherClause
 
 %%
 Cypher:					/* nil */	{}
@@ -92,7 +92,14 @@ Cypher:					/* nil */	{}
 | Cypher CypherClause EOL		{printf(">");}
 ;
 
-CypherClause: MatchClause WhereClause ReturnClause     {emit("Cypher");}
+// CypherClause: MatchClause WhereClause ReturnClause     {emit("Cypher");}
+
+CypherClause: /* MatchClause WhereClause */ ReturnClause 
+				{
+					mod->rt = $1;  // input ReturnClause to mod
+				}
+;
+
 /* Match Clause */
 
 MatchClause: MATCH Pattern        {emit("MatchClause");}
@@ -274,7 +281,6 @@ ApproxnumList:ApproxnumParam         {emit("ApproxnumParam");}
 
 // .........................................................................//
 
-stexps:ReturnClause	{mod->rt = $1;}
 
 /* Return Clause */
 

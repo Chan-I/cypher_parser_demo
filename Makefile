@@ -1,7 +1,7 @@
 .PHONY: clean
 
 CC := cc
-CFLAGS := -g -O0 -UYYDEBUG
+CFLAGS := -g -O0 -U_YYDEBUG
 
 run: parser.tab.o scanner.o ast.o module.o main.o
 	$(CC) -g -o $@ $+

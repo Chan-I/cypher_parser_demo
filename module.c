@@ -46,9 +46,10 @@ parse_module(module *mod)
 	yylex_init(&sc);
 	yyset_in(mod->src, sc);
 
-#ifdef YYDEBUG
-	yydebug = 0;
+#ifdef _YYDEBUG
+	yydebug = 1;
 #endif
+
 	res = yyparse(sc, mod);
 
 	return res;

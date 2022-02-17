@@ -77,12 +77,12 @@ static inline int list_length(const List *l){	return l ? l->length : 0;}
 #define foreach(cell, l)	\
 	for ((cell) = list_head(l); (cell) != NULL; (cell) = lnext(cell))
 
+List *lappend(List *list, void *datum);
 List *lcons(void *datum, List *list);
 static List *new_list(NodeTag type);
+static void check_list_invariants(const List *list);
 static void new_head_cell(List *list);
 static void new_tail_cell(List *list);
-List *lappend(List *list, void *datum);
-static void check_list_invariants(const List *list);
 void list_free(List *list);
 
 

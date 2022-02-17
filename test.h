@@ -6,7 +6,6 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <assert.h>
 
 #define MAX_COLNAME_LENGTH 64
 //------------------------------------------------------------------------------
@@ -113,6 +112,10 @@ typedef struct ReturnStmtClause{
   List *returnCols;
 
 } ReturnStmtClause;
+
+
+
+
 
 typedef struct 
 {

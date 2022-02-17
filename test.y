@@ -72,7 +72,7 @@ char attrNum[MAX_COLNAME_LENGTH];
 %type <strval> Expression
 %type <strval> FilterExpression FuncOpt
 %type <strval> INExpression IntList IntParam IntegerLiteralColonPatternPart IntegerLiteralPattern IntegerLiteralPatternPart
-%type <strval>  Literal
+%type <strval> Literal
 %type <strval> MapLiteral MapLiteralClause MapLiteralPattern MapLiteralPatternPart MatchClause
 %type <strval> NodeLabel NodeLabels NodeLabelsPattern NodePattern NumberLiteral
 %type <strval> OptAsAlias 
@@ -96,7 +96,9 @@ Cypher:					/* nil */	{}
 
 CypherClause: /* MatchClause WhereClause */ ReturnClause 
 				{
-					mod->rt = $1;  // input ReturnClause to mod
+					// mod -> = $1 ;
+					// mod -> = $3;
+					mod->rt = $1;  		// input ReturnClause to mod
 				}
 ;
 

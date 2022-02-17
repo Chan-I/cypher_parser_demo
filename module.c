@@ -1,49 +1,57 @@
-#include "test.lex.h"
-/*****************************************
- *	functions for checking the AST Tree
- *   will be deleted in the future.....
- *  TO DO
- ****************************************/
-static void
-check_list_invariants(const List *list)
-{
-	if (list == NIL)
-		return;
-
-	assert(list->length > 0);
-	assert(list->head != NULL);
-	assert(list->tail != NULL);
-
-	if (list->length == 1)
-		assert(list->head == list->tail);
-	if (list->length == 2)
-		assert(list->head->next == list->tail);
-	assert(list->tail->next == NULL);
-}
-
-static void
-list_free_private(List *list, bool deep)
-{
-	ListCell   *cell;
-	check_list_invariants(list);
-
-	cell = list_head(list);
-	while (cell != NULL)
-	{
-		ListCell   *tmp = cell;
-		cell = lnext(cell);
-		if (deep)
-			free(lfirst(tmp));
-		free(tmp);
-	}
-	if (list)
-		free(list);
-}
+#include "module.h"
+#include "parser.tab.h"
+#include "scanner.h"
 
 void
-list_free(List *list)
+emit(char *s, ...)
 {
-	list_free_private(list, true);
+  va_list ap;
+  va_start(ap, s);
+
+  printf("rpn: ");
+  vfprintf(stdout, s, ap);
+  printf("\n");
+}
+
+module *
+new_module_from_stdin()
+{
+	module *mod = (module *) malloc(sizeof(module));
+	mod->src = stdin;
+	return mod;
+}
+
+module *
+new_module_from_file(const char *filename)
+{
+	module *mod = (module *) malloc(sizeof(module));
+	mod->src = fopen(filename, "r");
+	return mod;
+}
+
+module *
+new_module_from_string(char *src)
+{
+	module *mod = (module *) malloc(sizeof(module));
+	mod->src = fmemopen(src, strlen(src)+1, "r");
+	return mod;
+}
+
+int
+parse_module(module *mod)
+{
+	yyscan_t sc;
+	int res;
+	
+	yylex_init(&sc);
+	yyset_in(mod->src, sc);
+
+#ifdef YYDEBUG
+	yydebug = 0;
+#endif
+	res = yyparse(sc, mod);
+
+	return res;
 }
 
 void
@@ -115,35 +123,6 @@ ReturnStmtPrint(ReturnStmtClause *rt, char *in)
     sprintf(str,"LIMIT %ld",rt->limitNum);
 }
 
-int
-parse_module(Module *mod)
-{
-  int res;
-	YY_BUFFER_STATE buffer = yy_scan_string(mod->src);
-  res = yyparse(mod);
-  yy_delete_buffer(buffer);
-  return res;
-}
-
-Module *
-new_module_from_string(char *str)
-{
-	Module *mod = (Module *) malloc(sizeof(Module));
-  mod->src = malloc((strlen(str)+1) * sizeof(char));
-	strncpy(mod->src,str, strlen(str)+1);
-	return mod;
-}
-char *
-print_module(Module *mod)
-{
-  char *sql = malloc(8192);  // TODO : 8192 ???? 
-  ReturnStmtPrint(mod->rt, sql);
-  /* TO DO ...*/
-  // TO DO ...
-
-  return sql;
-}
-
 void
 delete_return_clause_node(ReturnStmtClause *rt)
 {
@@ -154,16 +133,24 @@ delete_return_clause_node(ReturnStmtClause *rt)
 }
 
 void
-delete_module(Module *mod)
+delete_module(module *mod)
 {
-  if(mod->src)
-	  free(mod->src);
-	
-  if (mod->rt != NULL) {
+	if (mod->rt != NULL) {
 		delete_return_clause_node(mod->rt);
 	}
   /* TODO delete where clause node */
   /* TODO delete match clause node */
 
+	fclose(mod->src);
 	free(mod);
+}
+
+char *
+print_module(module *mod)
+{
+  char *sql = malloc(8192);  // TODO : 8192 ???? 
+  ReturnStmtPrint(mod->rt, sql);
+  /* TO DO */
+
+  return sql;
 }

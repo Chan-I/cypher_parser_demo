@@ -1,5 +1,6 @@
-#ifndef _TEST_H_
-#define _TEST_H_
+#ifndef __AST_H
+#define __AST_H
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
@@ -8,7 +9,8 @@
 #include <stdarg.h>
 
 #define MAX_COLNAME_LENGTH 64
-//------------------------------------------------------------------------------
+
+
 typedef enum NodeTag
 {
     T_Node,
@@ -29,7 +31,7 @@ typedef struct Node
      assert((size) >= sizeof(Node));    /* 检测申请的内存大小，>>=sizeof(Node) */ \
      _result = (Node *) malloc(size);   /* 申请内存 */ \
      _result->type = (tag);             /*设置TypeTag */ \
-     _result;                   /*返回值*/\
+     _result;                   		/*返回值*/\
 })
 #define makeNode(_type_) ((_type_ *)newNode(sizeof(_type_),T_##_type_))
 #define nodeTag(nodeptr) (((const Node *)(nodeptr))->type)
@@ -82,6 +84,10 @@ static void new_tail_cell(List *list);
 List *lappend(List *list, void *datum);
 static void check_list_invariants(const List *list);
 void list_free(List *list);
+
+
+
+
 //-------------------------------------------------------------------------------
 
 
@@ -113,25 +119,4 @@ typedef struct ReturnStmtClause{
 
 } ReturnStmtClause;
 
-
-
-
-
-typedef struct 
-{
-  char    *src;
-  ReturnStmtClause  *rt;
-  // ....
-  // ...
-
-} Module;
-
-
-void ReturnStmtPrint(ReturnStmtClause *rt, char *in);
-int parse_module(Module *mod);
-Module *new_module_from_string(char *str);
-char *print_module(Module *mod);
-void delete_return_clause_node(ReturnStmtClause *rt);
-void delete_module(Module *mod);
-
-#endif
+#endif // __AST_H

@@ -1,26 +1,20 @@
-%top{
-#include "test.h"
-#include "test.tab.h"
-}
-
 %{
-
+#include "parser.tab.h"
 int oldstate;
-
 %}
+
+%option reentrant
 %option yylineno
-%option 8bit
-%option noyywrap 
-%option nodefault
+
+%option noyywrap
+
 %option case-insensitive
 %option bison-bridge
-
 
 %x COMMENT
 %s BTWMODE
 
 %%
-
 
 AS          { return AS;         }
 ANY         { return ANY;        }
@@ -92,4 +86,3 @@ FALSE   { yylval->intval = 0; return BOOL; }
 <COMMENT>"*/"   {BEGIN oldstate;}
 <COMMENT>.|\n   ;
 
-%%

@@ -4,6 +4,48 @@
  *   will be deleted in the future.....
  *  TO DO
  ****************************************/
+static void
+check_list_invariants(const List *list)
+{
+	if (list == NIL)
+		return;
+
+	assert(list->length > 0);
+	assert(list->head != NULL);
+	assert(list->tail != NULL);
+
+	if (list->length == 1)
+		assert(list->head == list->tail);
+	if (list->length == 2)
+		assert(list->head->next == list->tail);
+	assert(list->tail->next == NULL);
+}
+
+static void
+list_free_private(List *list, bool deep)
+{
+	ListCell   *cell;
+	check_list_invariants(list);
+
+	cell = list_head(list);
+	while (cell != NULL)
+	{
+		ListCell   *tmp = cell;
+		cell = lnext(cell);
+		if (deep)
+			free(lfirst(tmp));
+		free(tmp);
+	}
+	if (list)
+		free(list);
+}
+
+void
+list_free(List *list)
+{
+	list_free_private(list, true);
+}
+
 void
 ReturnStmtPrint(ReturnStmtClause *rt, char *in)
 {
@@ -73,25 +115,55 @@ ReturnStmtPrint(ReturnStmtClause *rt, char *in)
     sprintf(str,"LIMIT %ld",rt->limitNum);
 }
 
-
 int
-main(int ac, char **av)
+parse_module(Module *mod)
 {
-	char sql[8192];
-  ReturnStmtClause rt;
-        printf("> ");
+  int res;
+	YY_BUFFER_STATE buffer = yy_scan_string(mod->src);
+  res = yyparse(mod);
+  yy_delete_buffer(buffer);
+  return res;
+}
 
-        char str1[64] = "return a.c;\0\0";
-        char* str2 = "return  a.id , b.name as bcol, count(distinct c.name), min( d.guid) order by e.no limit 100;";
+Module *
+new_module_from_string(char *str)
+{
+	Module *mod = (Module *) malloc(sizeof(Module));
+  mod->src = malloc((strlen(str)+1) * sizeof(char));
+	strncpy(mod->src,str, strlen(str)+1);
+	return mod;
+}
+char *
+print_module(Module *mod)
+{
+  char *sql = malloc(8192);  // TODO : 8192 ???? 
+  ReturnStmtPrint(mod->rt, sql);
+  /* TO DO ...*/
+  // TO DO ...
 
-//      YY_BUFFER_STATE buffer = yy_scan_buffer(str, strlen(str1)+2);
-        YY_BUFFER_STATE buffer = yy_scan_string(str2);
+  return sql;
+}
 
-  yyparse(&rt);
+void
+delete_return_clause_node(ReturnStmtClause *rt)
+{
+  if (rt -> odb)
+    free(rt -> odb);
+  if(rt->returnCols != NIL)
+    list_free(rt->returnCols);
+}
 
-        yy_delete_buffer(buffer);
+void
+delete_module(Module *mod)
+{
+  if(mod->src)
+	  free(mod->src);
+	
+  if (mod->rt != NULL) {
+		delete_return_clause_node(mod->rt);
+	}
+  /* TODO delete where clause node */
+  /* TODO delete match clause node */
 
-  ReturnStmtPrint(&rt, sql);
-  printf("%s\n",sql);
-  return 0;
-} /* main */
+	free(mod);
+}

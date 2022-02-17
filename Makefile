@@ -5,10 +5,11 @@
 # See the README file for license conditions and contact info.
 
 # programs in chapter 1
+CFLAGS:=-g -O0
 
 all:	test
 
-test:testfuncs.c test.tab.c test.lex.c
+test:main.c  test.tab.o test.lex.o testfuncs.o
 	cc -g -O0 -o $@ $^ -lfl
 
 test.tab.c:test.y
@@ -18,6 +19,7 @@ test.lex.c:test.l
 	flex --header-file=test.lex.h -b -CF -p  -o $@ $^
 
 
+.PHONY: clean
 
 clean:
 	rm -f test \

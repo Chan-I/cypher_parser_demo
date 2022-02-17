@@ -5,10 +5,9 @@ void emit(char *s, ...);
 char colNameAttr[MAX_COLNAME_LENGTH];
 char attrNum[MAX_COLNAME_LENGTH];
 
-
 %}
 
-%parse-param {ReturnStmtClause *rt}
+%parse-param {Module *mod}
 // %lex-param {core_yyscan_t yyscanner}
 %locations
 %pure-parser
@@ -22,7 +21,7 @@ char attrNum[MAX_COLNAME_LENGTH];
     char *strval;
     int subtok;
 
-	struct ast *a;
+	Module *mod;
 
 	Node	*node;
 	List 	*list;
@@ -59,6 +58,7 @@ char attrNum[MAX_COLNAME_LENGTH];
 
 
 // %type <a> exp factor term
+%type <mod> stexps
 %type <rtstmtcls> ReturnClause 
 %type <list> ReturnExprList
 %type <node> ReturnExpr 
@@ -84,7 +84,7 @@ char attrNum[MAX_COLNAME_LENGTH];
 
 
 
-%start ReturnClause
+%start stexps
 
 %%
 Cypher:					/* nil */	{}
@@ -272,29 +272,29 @@ ApproxnumList:ApproxnumParam         {emit("ApproxnumParam");}
 ;
 
 
+// .........................................................................//
+
+stexps:ReturnClause	{mod->rt = $1;}
 
 /* Return Clause */
 
 ReturnClause:  RETURN DistinctOpt ReturnExprList OrderByClause LimitClause ';'
 				{
-					
-					rt->hasDistinct = $2;   /* distinct */
+					$$ = makeNode(ReturnStmtClause);
 
-					rt->returnCols = $3;
+					$$->hasDistinct = $2;   /* distinct */
+
+					$$->returnCols = $3;
 					
-					if((rt->odb=$4) != NULL)	/* order by*/
-						rt->hasOrderBy = 1;
+					if(($$->odb=$4) != NULL)	/* order by*/
+						$$->hasOrderBy = 1;
 					else	
-						rt->hasOrderBy = 0;
+						$$->hasOrderBy = 0;
 
-					if ((rt->limitNum = $5)<0)	/* limit num*/
-						rt->hasLimit = false;
+					if (($$->limitNum = $5)<0)	/* limit num*/
+						$$->hasLimit = false;
 					else
-						rt->hasLimit = true;
-
-					/* Only run yyparse one time */
-					return 0;
-					// $$ = rt;
+						$$->hasLimit = true;
 				}
 ;
 
@@ -371,8 +371,6 @@ ReturnExpr:ColName OptAsAlias
 							}
 ; /* [ ... as b] OR  [...]*/
 
-
-
 OptAsAlias: /* no AS Alias*/ 	{$$ = NULL;}
 | AS NAME       				{$$ = $2;}
 ;
@@ -388,7 +386,6 @@ FuncOpt:NAME '(' ColName ')'         /* min(a.id) or func(a.id) */         {emit
 ExistsOpt:EXISTS '(' ColName ')'   /* exists(a.id) */   {emit("EXISTS");}
 ;
 
-
 OrderByClause: /* no orderby*/ {$$ = NULL;}
 | ORDER BY ColName AscDescOpt    
 					{
@@ -396,7 +393,6 @@ OrderByClause: /* no orderby*/ {$$ = NULL;}
 						$$->ascDesc = $4;
 
 						strncpy($$->orderByColname, $3 ,MAX_COLNAME_LENGTH); 
-
 						
 					}
 ;
@@ -419,16 +415,13 @@ NumberLiteral:INTNUM        { sprintf(attrNum,"%ld",$1); $$ = attrNum; }
 ;
 
 ColName:NAME 
-				{
-					// emit("ColName");
-					$$ = $1;
-				}
+				{	$$ = $1;	}
+;
+
 | NAME '.' NAME  
 				{
-					// emit("ColName");
 					sprintf(colNameAttr,"%s.%s",$1,$3);
 					strncpy($$,colNameAttr,MAX_COLNAME_LENGTH); 
-					// $$ = colNameAttr;
 					colNameAttr[0] = 0;
 				}
 ;
@@ -439,7 +432,7 @@ ColName:NAME
 
 
 void 
-yyerror(YYLTYPE *yylloc, ReturnStmtClause *rt, const char *s, ...) 
+yyerror(YYLTYPE *yylloc, Module *mod, const char *s, ...) 
 { 
   va_list ap; 
   va_start(ap, s); 
@@ -532,4 +525,3 @@ lappend(List *list, void *datum)
 	lfirst(list->tail) = datum;
 	return list;
 }
-

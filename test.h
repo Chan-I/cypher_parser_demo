@@ -1,9 +1,12 @@
+#ifndef _TEST_H_
+#define _TEST_H_
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <assert.h>
 
 #define MAX_COLNAME_LENGTH 64
 //------------------------------------------------------------------------------
@@ -78,7 +81,8 @@ static List *new_list(NodeTag type);
 static void new_head_cell(List *list);
 static void new_tail_cell(List *list);
 List *lappend(List *list, void *datum);
-
+static void check_list_invariants(const List *list);
+void list_free(List *list);
 //-------------------------------------------------------------------------------
 
 
@@ -110,3 +114,21 @@ typedef struct ReturnStmtClause{
 
 } ReturnStmtClause;
 
+typedef struct 
+{
+  char    *src;
+  ReturnStmtClause  *rt;
+  // ....
+  // ...
+
+} Module;
+
+
+void ReturnStmtPrint(ReturnStmtClause *rt, char *in);
+int parse_module(Module *mod);
+Module *new_module_from_string(char *str);
+char *print_module(Module *mod);
+void delete_return_clause_node(ReturnStmtClause *rt);
+void delete_module(Module *mod);
+
+#endif

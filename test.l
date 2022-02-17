@@ -8,7 +8,6 @@
 int oldstate;
 
 %}
-
 %option yylineno
 %option 8bit
 %option noyywrap 

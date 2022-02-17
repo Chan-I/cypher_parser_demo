@@ -1,5 +1,4 @@
-#include "test.h"
-
+#include "test.lex.h"
 /*****************************************
  *	functions for checking the AST Tree
  *   will be deleted in the future.....
@@ -80,8 +79,18 @@ main(int ac, char **av)
 {
 	char sql[8192];
   ReturnStmtClause rt;
-	printf("> ");
+        printf("> ");
+
+        char str1[64] = "return a.c;\0\0";
+        char* str2 = "return  a.id , b.name as bcol, count(distinct c.name), min( d.guid) order by e.no limit 100;";
+
+//      YY_BUFFER_STATE buffer = yy_scan_buffer(str, strlen(str1)+2);
+        YY_BUFFER_STATE buffer = yy_scan_string(str2);
+
   yyparse(&rt);
+
+        yy_delete_buffer(buffer);
+
   ReturnStmtPrint(&rt, sql);
   printf("%s\n",sql);
   return 0;

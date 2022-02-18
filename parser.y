@@ -37,6 +37,8 @@ char attrNum[MAX_COLNAME_LENGTH];
 	OrderByStmtClause *odb;
 	ReturnCols	*rtcols;
 	ReturnStmtClause	*rtstmtcls;	
+	WhereStmtClause 	*whstmtcls;
+	ComparisionExpr_Stru *cmpexprstru;
 	
 } /* Generate YYSTYPE from these types:  */
 
@@ -71,9 +73,11 @@ char attrNum[MAX_COLNAME_LENGTH];
 %type <intval> LimitClause AscDescOpt DistinctOpt
 %type <odb> OrderByClause
 
-%type <strval> AnonymousPatternPart ApproxnumList ApproxnumParam 
-%type <strval> ColName ComparisonExpression Cypher CypherClause
+%type <whstmtcls> WhereClause
+%type <cmpexprstru> WhereExpression
 
+%type <strval> AnonymousPatternPart ApproxnumList ApproxnumParam 
+%type <strval> ColName Cypher CypherClause
 
 %type <strval> Expression
 %type <strval> FilterExpression FuncOpt
@@ -86,7 +90,7 @@ char attrNum[MAX_COLNAME_LENGTH];
 %type <strval> RelTypeName RelTypeNamePattern RelationshipDetail RelationshipPattern RelationshipTypePattern 
 %type <strval> StringList StringParam
 %type <strval> Variable_Pattern
-%type <strval> WhereClause WhereExpression
+
 
 
 
@@ -213,29 +217,91 @@ IntegerLiteral:INTNUM                       {emit("INTNUM %d",$1);}
 
 /* Where Clause */
 
-WhereClause:   {emit("WhereClause");}
-| WHERE WhereExpression {emit("WHERE WhereExpression");}
+WhereClause:   
+				{  // no where conditions
+					$$ = makeNode(WhereStmtClause);
+					$$ -> exWhereExpr = false;
+					$$ -> root = NULL;
+				} 
+| WHERE WhereExpression 
+				{
+					emit("return where");
+					$$ = makeNode(WhereStmtClause);
+					$$ -> exWhereExpr = true;
+					$$ -> root = $2;   		
+				}
 ;
 
-WhereExpression:ComparisonExpression      {emit("WhereExpression");}
-| WhereExpression OR WhereExpression    {emit("OR");}
-| WhereExpression XOR WhereExpression   {emit("XOR");}
-| WhereExpression AND WhereExpression   {emit("AND");}
-| NOT WhereExpression          {emit("NOT");}
+WhereExpression:Expression PartialComparisonExpression      
+				{
+					emit("-----Into ComparisonExpression");
+					$$ = makeNode(ComparisionExpr_Stru);
+					$$ -> exprType = -1;
+					$$ -> branch = false; //   leaf node;
+					$$ -> comp = NULL;   // TODO ..............
+					$$ -> lchild = NULL;
+					$$ -> rchild = NULL;
+					$$ -> nchild = NULL;
+				}
+| WhereExpression OR WhereExpression    
+				{
+					emit("OR");
+					$$ = makeNode(ComparisionExpr_Stru);
+					$$ -> exprType = 'O';
+					$$ -> branch = true;
+					$$ -> comp = NULL;
+					$$ -> lchild = $1;
+					$$ -> rchild = $3;
+					$$ -> nchild = NULL;
+				}
+| WhereExpression XOR WhereExpression   
+				{
+					emit("XOR");
+					$$ = makeNode(ComparisionExpr_Stru);
+					$$ -> exprType = 'X';
+					$$ -> branch = true;
+					$$ -> comp = NULL;
+					$$ -> lchild = $1;
+					$$ -> rchild = $3;
+					$$ -> nchild = NULL;
+				}
+| WhereExpression AND WhereExpression   
+				{
+					emit("AND");
+					$$ = makeNode(ComparisionExpr_Stru);
+					$$ -> exprType = 'A';
+					$$ -> branch = true;
+					$$ -> comp = NULL;
+					$$ -> lchild = $1;
+					$$ -> rchild = $3;
+					$$ -> nchild = NULL;
+				}
+| NOT WhereExpression          
+				{
+					emit("NOT");
+					$$ = makeNode(ComparisionExpr_Stru);
+					$$ -> exprType = 'N';
+					$$ -> branch = true;
+					$$ -> comp = NULL;
+					$$ -> lchild = NULL;
+					$$ -> rchild = NULL;
+					$$ -> nchild = $2;
+				}
+| '(' WhereExpression ')'	{}
 ;
 
-ComparisonExpression:Expression PartialComparisonExpression    {emit("ComparisonExpression");}
-;
+// ComparisonExpression:Expression PartialComparisonExpression    {emit("ComparisonExpression");}
+// ;
 
 PartialComparisonExpression:            {emit("PartialComparisonExpression");}
-| COMPARISON Expression    /* >= */    {emit("%d",$1);}
+| COMPARISON Expression    /* >= */    {emit("COMPARISION %d",$1);}
 | IN Expression                         {emit("IN");}
 ;
 
 Expression:Literal                  {emit("Expression:Literal");}
 | ANY '(' FilterExpression ')'      {emit("ANY");}
 | FuncOpt                          {emit("func");}
-| '(' WhereExpression ')'          {emit(" ( ) ");}
+// | '(' WhereExpression ')'          {emit(" ( ) ");}
 | INExpression                      {emit("INExpression");}
 ;
 
@@ -279,7 +345,10 @@ ApproxnumList:ApproxnumParam         {emit("ApproxnumParam");}
 
 
 sexps:
-	ReturnClause	{mod->rt = $1;}
+	WhereClause ReturnClause	{
+									mod->wh = $1;
+									mod->rt = $2;
+								}
 
 ReturnClause:  RETURN DistinctOpt ReturnExprList OrderByClause LimitClause ';'
 				{

@@ -7,7 +7,7 @@ main(int argc, char **argv)
 	int i, res;
 	char *sql;
 	extern int yydebug ;
-	mod = new_module_from_string("return  a.id , b.name as bcol, count(distinct c.name), min( d.guid) order by e.no limit 100;");
+	mod = new_module_from_string("WHERE 'Global' in labels(n) AND any(name in n.name WHERE name = 'master' and c > 11) return  a.id , b.name as bcol, count(distinct c.name), min( d.guid) order by e.no limit 100;");
 	res = parse_module(mod);
 	
 	if(!res) // success

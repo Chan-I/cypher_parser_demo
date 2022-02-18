@@ -7,6 +7,7 @@
 typedef struct {
 	FILE          *src;
 	ReturnStmtClause *rt;
+	WhereStmtClause	 *wh;
 	// TODO ... whereclause
 	// TODO ... matchclause
 } module;

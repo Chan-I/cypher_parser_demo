@@ -17,7 +17,9 @@ typedef enum NodeTag
     T_List,
     T_ReturnStmtClause,
     T_ReturnCols,
-    T_OrderByStmtClause
+    T_OrderByStmtClause,
+    T_WhereStmtClause,
+    T_ComparisionExpr_Stru
 }NodeTag;
 
 typedef struct Node
@@ -118,5 +120,25 @@ typedef struct ReturnStmtClause{
   List *returnCols;
 
 } ReturnStmtClause;
+
+
+
+typedef struct ComparisionExpr_Stru
+{
+  NodeTag type;                     /* type ----   for malloc */
+  int exprType;                     /* AND  OR   XOR   NOT   ->   type*/
+  void *comp;                       /* remain  */
+  bool branch;                      /* branch or not (void * is NULL)*/
+  struct ComparisionExpr_Stru * lchild;
+  struct ComparisionExpr_Stru * rchild;
+  struct ComparisionExpr_Stru * nchild;
+} ComparisionExpr_Stru;
+
+typedef struct WhereStmtClause
+{
+  NodeTag type;
+  bool exWhereExpr;             // whether exists Where expr??? 
+  ComparisionExpr_Stru *root;   // root of tree
+} WhereStmtClause;
 
 #endif // __AST_H

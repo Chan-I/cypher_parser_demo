@@ -108,12 +108,11 @@ list_free_private(List *list, bool deep)
 
 		cell = lnext(cell);
 		if (deep)
-			free(lfirst(tmp));
-		free(tmp);
+			FREE(lfirst(tmp));
+		FREE(tmp);
 	}
 
-	if (list)
-		free(list);
+	FREE(list);
 }
 
 

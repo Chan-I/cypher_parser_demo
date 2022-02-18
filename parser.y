@@ -243,6 +243,10 @@ WhereExpression:Expression PartialComparisonExpression
 					$$ -> rchild = NULL;
 					$$ -> nchild = NULL;
 				}
+| '(' WhereExpression ')'	
+				{
+					$$ = $2;
+				}
 | WhereExpression OR WhereExpression    
 				{
 					emit("OR");
@@ -287,7 +291,6 @@ WhereExpression:Expression PartialComparisonExpression
 					$$ -> rchild = NULL;
 					$$ -> nchild = $2;
 				}
-| '(' WhereExpression ')'	{}
 ;
 
 // ComparisonExpression:Expression PartialComparisonExpression    {emit("ComparisonExpression");}

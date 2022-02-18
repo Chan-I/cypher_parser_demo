@@ -125,32 +125,108 @@ ReturnStmtPrint(ReturnStmtClause *rt, char *in)
 }
 
 void
+ComparisionExprPrint(ComparisionExpr_Stru *se)
+{
+  // TODO  print the whole tree () comparisonExprPrint;
+}
+
+void 
+WhereStmtPrint(WhereStmtClause *wh, char *sql)
+{
+  if (wh->exWhereExpr)  
+    ComparisionExprPrint(wh->root);
+}
+
+void
 delete_return_clause_node(ReturnStmtClause *rt)
 {
-  if (rt -> odb)
-    free(rt -> odb);
+  FREE(rt -> odb);
   if(rt->returnCols != NIL)
     list_free(rt->returnCols);
+  FREE(rt);
+}
+
+void
+delete_comparision_expr_node(void * comp)
+{
+  if (comp == NULL)
+    return ;
+  else
+  {
+      // free void * comp tree node ....
+  }
+}
+
+void
+delete_comparision_clause_node(ComparisionExpr_Stru *se)
+{
+  //  free the whole tree
+  if (se->exprType == -1)   // leaf node
+  {
+    delete_comparision_expr_node(se->comp);  // free se->comp
+    FREE(se);                                // free se
+  }
+  else if (se->exprType == 'F')               //  branch node (all child node have been free)
+  {
+    FREE(se->lchild);
+    FREE(se->rchild);
+    FREE(se->nchild);
+    FREE(se);  
+  }
+  else if (se->exprType == 'N')               // NOT
+  {
+    delete_comparision_clause_node(se->nchild);
+    se->exprType = 'F';                      // mark the branch node
+    delete_comparision_clause_node(se);
+  }
+  else
+  {
+    delete_comparision_clause_node(se->lchild);
+    delete_comparision_clause_node(se->rchild);
+    se->exprType = 'F';                     //  mark the branch node
+    delete_comparision_clause_node(se);
+  }
+}
+
+void
+delete_where_clause_node(WhereStmtClause	 *wh)
+{
+  if (wh->exWhereExpr)
+  {
+    delete_comparision_clause_node(wh->root);
+    wh->root = NULL;
+  }
 }
 
 void
 delete_module(module *mod)
 {
-	if (mod->rt != NULL) {
-		delete_return_clause_node(mod->rt);
+	if (mod->rt != NULL) 
+  {
+    DELETE_RETURN_CLAUSE_NODE(mod->rt);
 	}
-  /* TODO delete where clause node */
-  /* TODO delete match clause node */
-
-	fclose(mod->src);
-	free(mod);
+  if (mod->wh != NULL) 
+  {
+    DELETE_WHERE_CLAUSE_NODE(mod->wh);
+  }
+  if (mod->mch != NULL) /*  delete match clause node */
+  {
+    // TODO  DELETE_WHERE_CLAUSE_NODE(mod->mch); 
+  }
+  
+	FCLOSE(mod->src);
+	FREE(mod);
 }
 
 char *
 print_module(module *mod)
 {
-  char *sql = malloc(8192);  // TODO : 8192 ???? 
-  ReturnStmtPrint(mod->rt, sql);
+  char *sql = malloc(8192 * 3);  // TODO : 8192 ???? 
+  char *head = sql;
+  ReturnStmtPrint(mod->rt, head);
+  head += strlen(sql);
+  WhereStmtPrint(mod->wh, head);
+
   /* TO DO */
 
   return sql;

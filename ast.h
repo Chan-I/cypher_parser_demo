@@ -10,6 +10,30 @@
 
 #define MAX_COLNAME_LENGTH 64
 
+#define FREE(a) do { 	\
+	if (a) free(a);       \
+	a = NULL;		          \
+}while(0)
+
+#define FCLOSE(a) do { 	\
+	if (a) fclose(a);       \
+	a = NULL;		          \
+}while(0)
+
+#define DELETE_RETURN_CLAUSE_NODE(a) do  { \
+  delete_return_clause_node(a); \
+  a = NULL; \
+}while(0)
+
+#define DELETE_WHERE_CLAUSE_NODE(a) do {\
+  delete_where_clause_node(a);  \
+  a = NULL;   \
+}while(0)
+
+#define DELETE_MATCH_CLAUSE_NODE(a) do {\
+  delete_match_clause_node(a);  \
+  a = NULL;   \
+}while(0)
 
 typedef enum NodeTag
 {
@@ -90,7 +114,7 @@ void list_free(List *list);
 
 
 
-//-------------------------------------------------------------------------------
+//---------------------------------Return Clause------------------------------------
 
 
 typedef struct OrderByStmtClause{
@@ -121,7 +145,7 @@ typedef struct ReturnStmtClause{
 
 } ReturnStmtClause;
 
-
+//--------------------------------Where Clause------------------------------------
 
 typedef struct ComparisionExpr_Stru
 {
@@ -140,5 +164,13 @@ typedef struct WhereStmtClause
   bool exWhereExpr;             // whether exists Where expr??? 
   ComparisionExpr_Stru *root;   // root of tree
 } WhereStmtClause;
+
+
+//----------------------------------Match Clause---------------------------------------
+
+typedef struct MatchStmtClause
+{
+  void * a;
+} MatchStmtClause;
 
 #endif // __AST_H

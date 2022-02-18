@@ -8,8 +8,8 @@ typedef struct {
 	FILE          *src;
 	ReturnStmtClause *rt;
 	WhereStmtClause	 *wh;
-	// TODO ... whereclause
-	// TODO ... matchclause
+	MatchStmtClause  *mch;
+
 } module;
 
 char *print_module(module *mod);
@@ -19,6 +19,6 @@ module *new_module_from_stdin();
 module *new_module_from_string(char *src);
 void delete_module(module *mod);
 void delete_return_clause_node(ReturnStmtClause *rt);
-void emit(char *s, ...);
+void emit(char *s, ...);			
 
 #endif // __MODULE_H

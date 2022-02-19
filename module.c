@@ -133,7 +133,6 @@ ComparisionExprPrint(ComparisionExpr_Stru *se)
 void 
 WhereStmtPrint(WhereStmtClause *wh, char *sql)
 {
-  if (wh->exWhereExpr)  
     ComparisionExprPrint(wh->root);
 }
 
@@ -191,11 +190,8 @@ delete_comparision_clause_node(ComparisionExpr_Stru *se)
 void
 delete_where_clause_node(WhereStmtClause	 *wh)
 {
-  if (wh->exWhereExpr)
-  {
     delete_comparision_clause_node(wh->root);
     wh->root = NULL;
-  }
 }
 
 void
@@ -205,7 +201,7 @@ delete_module(module *mod)
   {
     DELETE_RETURN_CLAUSE_NODE(mod->rt);
 	}
-  if (mod->wh != NULL) 
+  if (mod->exWhereExpr) 
   {
     DELETE_WHERE_CLAUSE_NODE(mod->wh);
   }
@@ -225,7 +221,8 @@ print_module(module *mod)
   char *head = sql;
   ReturnStmtPrint(mod->rt, head);
   head += strlen(sql);
-  WhereStmtPrint(mod->wh, head);
+  if(mod->exWhereExpr)
+    WhereStmtPrint(mod->wh, head);
 
   /* TO DO */
 

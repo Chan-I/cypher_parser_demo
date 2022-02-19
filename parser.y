@@ -28,12 +28,18 @@ char attrNum[MAX_COLNAME_LENGTH];
 	char *keyword;		/* type for keywords*/
 
     int intval;
+	int64_t lintval;
     double floatval;
     char *strval;
     int subtok;
 
 	Node	*node;
 	List 	*list;
+	LiteralType *ltrlType;
+	AnyExpr *anyExpr;
+	IntStringAppro *intStrApp;
+	Comparision_Stru *cmpStru;
+	SubCompExpr *subCompExpr;
 	OrderByStmtClause *odb;
 	ReturnCols	*rtcols;
 	ReturnStmtClause	*rtstmtcls;	
@@ -68,27 +74,35 @@ char attrNum[MAX_COLNAME_LENGTH];
 %type <mod> sexps
 
 %type <rtstmtcls> ReturnClause 
-%type <list> ReturnExprList
-%type <node> ReturnExpr 
-%type <intval> LimitClause AscDescOpt DistinctOpt
+%type <list> ReturnExprList StringList IntList ApproxnumList INExpression
+%type <node> ReturnExpr StringParamNode IntParamNode ApproxnumParamNode
+%type <intval> LimitClause AscDescOpt DistinctOpt 
+%type <lintval> IntParam
 %type <odb> OrderByClause
 
 %type <whstmtcls> WhereClause
 %type <cmpexprstru> WhereExpression
 
-%type <strval> AnonymousPatternPart ApproxnumList ApproxnumParam 
+%type <floatval> ApproxnumParam 
+%type <ltrlType> Literal
+%type <strval> FuncOpt
+%type <subCompExpr> PartialComparisonExpression
+%type <cmpStru> Expression
+%type <anyExpr> FilterExpression
+
+%type <strval> AnonymousPatternPart 
+
 %type <strval> ColName Cypher CypherClause
 
-%type <strval> Expression
-%type <strval> FilterExpression FuncOpt
-%type <strval> INExpression IntList IntParam IntegerLiteralColonPatternPart IntegerLiteralPattern IntegerLiteralPatternPart
-%type <strval>  Literal
+
+%type <strval> IntegerLiteralColonPatternPart IntegerLiteralPattern IntegerLiteralPatternPart
+
 %type <strval> MapLiteral MapLiteralClause MapLiteralPattern MapLiteralPatternPart MatchClause
 %type <strval> NodeLabel NodeLabels NodeLabelsPattern NodePattern NumberLiteral
 %type <strval> OptAsAlias 
-%type <strval> PartialComparisonExpression Pattern PatternElement PatternElementChain PatternElementChainClause PatternPart PropertiesPattern PropertyKey 
+%type <strval>  Pattern PatternElement PatternElementChain PatternElementChainClause PatternPart PropertiesPattern PropertyKey 
 %type <strval> RelTypeName RelTypeNamePattern RelationshipDetail RelationshipPattern RelationshipTypePattern 
-%type <strval> StringList StringParam
+%type <strval> StringParam
 %type <strval> Variable_Pattern
 
 
@@ -218,16 +232,11 @@ IntegerLiteral:INTNUM                       {emit("INTNUM %d",$1);}
 /* Where Clause */
 
 WhereClause:   
-				{  // no where conditions
-					$$ = makeNode(WhereStmtClause);
-					$$ -> exWhereExpr = false;
-					$$ -> root = NULL;
-				} 
+				{  /* no where conditions*/ 	} 
 | WHERE WhereExpression 
 				{
 					emit("return where");
 					$$ = makeNode(WhereStmtClause);
-					$$ -> exWhereExpr = true;
 					$$ -> root = $2;   		
 				}
 ;
@@ -238,7 +247,17 @@ WhereExpression:Expression PartialComparisonExpression
 					$$ = makeNode(ComparisionExpr_Stru);
 					$$ -> exprType = -1;
 					$$ -> branch = false; //   leaf node;
-					$$ -> comp = NULL;   // TODO ..............
+					if ($2 == NULL)
+					{
+						$$ -> exPartialComExpr = false;
+						$$ -> subComp = NULL;
+					}
+					else
+					{
+						$$ -> exPartialComExpr = true;
+						$$ -> subComp = $2;
+					}
+					$$ -> comp = $1;   // TODO ..............
 					$$ -> lchild = NULL;
 					$$ -> rchild = NULL;
 					$$ -> nchild = NULL;
@@ -252,6 +271,8 @@ WhereExpression:Expression PartialComparisonExpression
 					emit("OR");
 					$$ = makeNode(ComparisionExpr_Stru);
 					$$ -> exprType = 'O';
+					$$ -> exPartialComExpr = false;
+					$$ -> subComp = NULL;
 					$$ -> branch = true;
 					$$ -> comp = NULL;
 					$$ -> lchild = $1;
@@ -263,6 +284,8 @@ WhereExpression:Expression PartialComparisonExpression
 					emit("XOR");
 					$$ = makeNode(ComparisionExpr_Stru);
 					$$ -> exprType = 'X';
+					$$ -> exPartialComExpr = false;
+					$$ -> subComp = NULL;
 					$$ -> branch = true;
 					$$ -> comp = NULL;
 					$$ -> lchild = $1;
@@ -274,6 +297,8 @@ WhereExpression:Expression PartialComparisonExpression
 					emit("AND");
 					$$ = makeNode(ComparisionExpr_Stru);
 					$$ -> exprType = 'A';
+					$$ -> exPartialComExpr = false;
+					$$ -> subComp = NULL;
 					$$ -> branch = true;
 					$$ -> comp = NULL;
 					$$ -> lchild = $1;
@@ -285,6 +310,8 @@ WhereExpression:Expression PartialComparisonExpression
 					emit("NOT");
 					$$ = makeNode(ComparisionExpr_Stru);
 					$$ -> exprType = 'N';
+					$$ -> exPartialComExpr = false;
+					$$ -> subComp = NULL;
 					$$ -> branch = true;
 					$$ -> comp = NULL;
 					$$ -> lchild = NULL;
@@ -296,60 +323,220 @@ WhereExpression:Expression PartialComparisonExpression
 // ComparisonExpression:Expression PartialComparisonExpression    {emit("ComparisonExpression");}
 // ;
 
-PartialComparisonExpression:            {emit("PartialComparisonExpression");}
-| COMPARISON Expression    /* >= */    {emit("COMPARISION %d",$1);}
-| IN Expression                         {emit("IN");}
+PartialComparisonExpression:            
+							{
+								$$ = NULL;
+							}
+| COMPARISON Expression     {
+								emit("COMPARISION %d",$1);
+								$$ = makeNode(SubCompExpr);
+								$$ -> partialType = 1;		// > >= ...
+								$$ -> compType = $1;
+								$$ -> subComprisionExpr = $2;
+							}
+| IN Expression             {
+								emit("IN");
+								$$ = makeNode(SubCompExpr);
+								$$ -> partialType = 0;		// IN ...
+								$$ -> subComprisionExpr = $2;
+							}
 ;
 
-Expression:Literal                  {emit("Expression:Literal");}
-| ANY '(' FilterExpression ')'      {emit("ANY");}
-| FuncOpt                          {emit("func");}
+Expression:Literal                	{
+										emit("Expression:Literal");
+										$$ = makeNode(Comparision_Stru);
+										$$ -> exprType = 'L';
+										$$ -> ltrlType = $1;
+										$$ -> funcOpts = NULL;
+										$$ -> anyExpr = NULL;
+										$$ -> inExpr = NULL;
+										
+									}
+| ANY '(' FilterExpression ')'      {
+										emit("ANY");
+										$$ = makeNode(Comparision_Stru);
+										$$ -> exprType = 'A';
+										$$ -> funcOpts = NULL;
+										$$ -> anyExpr = $3;
+										$$ -> inExpr = NULL;
+									}
+| FuncOpt                           {	
+										emit("func");
+										$$ = makeNode(Comparision_Stru);
+										$$ -> exprType = 'F';
+										$$ -> funcOpts = $1;
+										$$ -> anyExpr = NULL;
+										$$ -> inExpr = NULL;
+									}
 // | '(' WhereExpression ')'          {emit(" ( ) ");}
-| INExpression                      {emit("INExpression");}
+| INExpression                      {
+										emit("INExpression");
+										$$ = makeNode(Comparision_Stru);
+										$$ -> exprType = 'I';
+										$$ -> funcOpts = NULL;
+										$$ -> anyExpr = NULL;
+										$$ -> inExpr = $1;   // in List
+									}
 ;
 
-FilterExpression:Literal IN WhereExpression WhereClause  {emit("FilterExpression:IN");}
+
+FilterExpression:Literal IN WhereExpression WhereClause  
+									{
+										emit("FilterExpression:IN");
+										$$ = makeNode(AnyExpr);
+										$$ -> ltrlType = $1;
+										$$ -> whExpr = $3;
+										$$ -> whcls = $4;
+									}
 ;
 
-Literal:IntParam                 {emit("Literal");}
-| StringParam                    {emit("StringList");}
-| BOOL                          {emit("BOOL:%d",$1);}
-| NULLX                         {emit("NULL");}
-| ApproxnumParam                 {emit("ApproxnumList");}
-| ColName                      {emit("ColName");}
+Literal:IntParam                {
+									emit("Literal");
+									$$ = makeNode(LiteralType);
+									$$->type = 'I';		// Intparam;
+									$$->ltype.intParam = $1;
+								}
+| StringParam                   {
+									emit("StringList");
+									$$ = makeNode(LiteralType);
+									$$->type = 'S';		// StringParm
+									strncpy($$->ltype.strParam, $1, strlen($1));
+								}
+| BOOL                          {
+									emit("BOOL:%d",$1);
+									$$ = makeNode(LiteralType);
+									$$->type = 'B';		// BOOL
+									$$->ltype.boolValue = $1;
+								}
+| NULLX                         {
+									$$ = makeNode(LiteralType);
+									$$->type = 'N';		// NULLX
+									strncpy($$->ltype.ifNull,$1,4);
+								}
+| ApproxnumParam                {
+									emit("ApproxnumList");
+									$$ = makeNode(LiteralType);
+									$$->type = 'A';		// ApproxNumParam;
+									$$->ltype.approxNumParam = $1;
+								}
+| ColName                       {
+									emit("ColName");
+									$$ = makeNode(LiteralType);
+									$$->type = 'C';		// ColName
+									strncpy($$->ltype.strParam, $1, strlen($1));
+								}
 ;
 
-INExpression:                   {emit("no INExpression");}
-| '[' StringList ']'            {emit("StringList");}
-| '[' IntList ']'               {emit("IntList");}
-| '[' ApproxnumList ']'         {emit("ApproxnumList");}
+FuncOpt:NAME '(' ColName ')'         /* min(a.id) or func(a.id) */         
+							{
+								emit("%s(",$1);emit(")");
+								sprintf(colNameAttr,"%s(%s)",$1, $3);
+								$$ = (char *)malloc(strlen(colNameAttr) * sizeof(char));
+								strncpy($$, colNameAttr, strlen(colNameAttr));
+								memset(colNameAttr,0,MAX_COLNAME_LENGTH);
+							}
+| EXISTS '(' ColName ')'    {	/* exists(a.id) */ 
+								emit("EXISTS");
+								sprintf(colNameAttr,"EXISTS(%s)",$3);
+								$$ = (char *)malloc(strlen(colNameAttr) * sizeof(char));
+								strncpy($$, colNameAttr, strlen(colNameAttr));
+								memset(colNameAttr,0,MAX_COLNAME_LENGTH);
+							} 
+| COUNT '(' DistinctOpt ColName ')'    /* count(a.id) */     	
+							{
+								emit("COUNT");
+								if ($3 == 1)
+									sprintf(colNameAttr,"COUNT(DISTINCT %s)",$1, $3);
+								else
+									sprintf(colNameAttr,"COUNT(%s)",$1, $3);
+								$$ = (char *)malloc(strlen(colNameAttr) * sizeof(char));
+								strncpy($$, colNameAttr, strlen(colNameAttr));
+								memset(colNameAttr,0,MAX_COLNAME_LENGTH);
+							}
 ;
 
-StringParam:STRING              {emit("%s",$1);free($1);}
+INExpression:                   {$$ = NULL;}
+| '[' StringList ']'            {emit("StringList");$$ = $2;}
+| '[' IntList ']'               {emit("IntList");$$ = $2;}
+| '[' ApproxnumList ']'         {emit("ApproxnumList");$$ = $2;}
 ;
 
-IntParam:INTNUM                 {emit("%d",$1);}
+StringParam:STRING              {$$ = $1;}
+;
+IntParam:INTNUM                 {$$ = $1;}
+;
+ApproxnumParam:APPROXNUM        {$$ = $1;}
 ;
 
-ApproxnumParam:APPROXNUM        {emit("%f",$1);}
+StringParamNode:STRING              {
+										IntStringAppro *intstrapp = makeNode(IntStringAppro);
+										intstrapp->isa.strValue = malloc(strlen($1) * sizeof(char));
+										strcpy(intstrapp->isa.strValue, $1);
+										intstrapp->type = 'S';
+										$$ = (Node *)intstrapp;
+										
+									}
 ;
 
-StringList:StringParam               {emit("StringParam");}
-| StringList ',' StringParam         {emit("StringList , ");}
+IntParamNode:INTNUM                 {
+										IntStringAppro *intstrapp = makeNode(IntStringAppro);
+										intstrapp->isa.intValue = (int64_t) $1;
+										intstrapp->type = 'I';
+										$$ = (Node *)intstrapp;
+									}
 ;
 
-IntList:IntParam                  {emit("IntParam");}
-| IntList ',' IntParam            {emit("IntList ,");}
+ApproxnumParamNode:APPROXNUM        {
+										IntStringAppro *intstrapp = makeNode(IntStringAppro);
+										intstrapp->isa.approValue = $1;
+										intstrapp->type = 'A';
+										$$ = (Node *)intstrapp;
+									}
 ;
 
-ApproxnumList:ApproxnumParam         {emit("ApproxnumParam");}
-| ApproxnumList ',' ApproxnumParam   {emit("ApproxnumList ,");}
+StringList:StringParamNode          {
+										emit("StringParam");
+										$$ = list_make1($1);
+									}
+| StringList ',' StringParamNode    {
+										emit("StringList , ");
+										$$ = lappend($1,$3);
+									}
+;
+
+IntList:IntParamNode                {
+										emit("IntParam");
+										$$ = list_make1($1);
+									}
+| IntList ',' IntParamNode          {
+										emit("IntList ,");
+										$$ = lappend($1,$3);
+									}
+;
+
+ApproxnumList:ApproxnumParamNode        {
+											emit("ApproxnumParam");
+											$$ = list_make1($1);
+										}
+| ApproxnumList ',' ApproxnumParamNode  {
+											emit("ApproxnumList ,");
+											$$ = lappend($1,$3);
+										}
 ;
 
 
 sexps:
 	WhereClause ReturnClause	{
-									mod->wh = $1;
+									if ($1 == NULL)
+									{
+										mod->exWhereExpr = false;
+										mod->wh = NULL;
+									}
+									else
+									{
+										mod->exWhereExpr = true;
+										mod->wh = $1;
+									}																		
 									mod->rt = $2;
 								}
 
@@ -455,20 +642,21 @@ ReturnExpr:ColName OptAsAlias
 OptAsAlias: /* no AS Alias*/ 	{$$ = NULL;}
 | AS NAME       				{$$ = $2;}
 ;
+/*
+CountFuncOpt:COUNT '(' DistinctOpt ColName ')'        	
+							{
+								emit("COUNT");
+								if ($3 == 1)
+									sprintf(colNameAttr,"COUNT(DISTINCT %s)",$1, $3);
+								else
+									sprintf(colNameAttr,"COUNT(%s)",$1, $3);
+								strncpy($$, colNameAttr, strlen(colNameAttr));
+								memset(colNameAttr,0,MAX_COLNAME_LENGTH);
+							} 
+;*/
 
-CountFuncOpt:COUNT '(' DistinctOpt ColName ')'    /* count(a.id) */      {emit("COUNT");} 
-;
 
-FuncOpt:NAME '(' ColName ')'         /* min(a.id) or func(a.id) */         {emit("%s(",$1);emit(")");}
-| ExistsOpt                        {emit("ExistsOpt");}
-| CountFuncOpt                    {emit("CountFuncOpt");}
-;
-
-ExistsOpt:EXISTS '(' ColName ')'   /* exists(a.id) */   {emit("EXISTS");}
-;
-
-
-OrderByClause: /* no orderby*/ {$$ = NULL;}
+OrderByClause: /* no orderby*/ 		{ $$ = NULL; }
 | ORDER BY ColName AscDescOpt    
 					{
 						$$ = makeNode(OrderByStmtClause);
@@ -505,7 +693,7 @@ ColName:NAME
 					sprintf(colNameAttr,"%s.%s",$1,$3);
 					strncpy($$,colNameAttr,MAX_COLNAME_LENGTH); 
 					// $$ = colNameAttr;
-					colNameAttr[0] = 0;
+					memset(colNameAttr,0,MAX_COLNAME_LENGTH);
 				}
 ;
 

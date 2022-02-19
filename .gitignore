@@ -2,6 +2,7 @@
 *.out
 *.tab.c
 *.tab.h
+.vscode/
 scanner.c
 scanner.h
 *.output

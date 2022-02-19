@@ -7,6 +7,7 @@
 typedef struct {
 	FILE          *src;
 	ReturnStmtClause *rt;
+	bool exWhereExpr;             // whether exists Where expr??? 
 	WhereStmtClause	 *wh;
 	MatchStmtClause  *mch;
 

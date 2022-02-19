@@ -7,8 +7,9 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdarg.h>
+ #include <stdint.h>
 
-#define MAX_COLNAME_LENGTH 64
+#define MAX_COLNAME_LENGTH 128
 
 #define FREE(a) do { 	\
 	if (a) free(a);       \
@@ -43,7 +44,12 @@ typedef enum NodeTag
     T_ReturnCols,
     T_OrderByStmtClause,
     T_WhereStmtClause,
-    T_ComparisionExpr_Stru
+    T_Comparision_Stru,
+    T_ComparisionExpr_Stru,
+    T_SubCompExpr,
+    T_IntStringAppro,
+    T_AnyExpr,
+    T_LiteralType
 }NodeTag;
 
 typedef struct Node
@@ -146,22 +152,79 @@ typedef struct ReturnStmtClause{
 } ReturnStmtClause;
 
 //--------------------------------Where Clause------------------------------------
+typedef struct IntStringAppro
+{
+  NodeTag type;
+  int union_type;
+  union
+  {
+    int64_t intValue;
+    double approValue;
+    char * strValue;
+  } isa;
+}IntStringAppro;
+
+typedef struct LiteralType
+{
+  int type;         //   expression   type ...
+  union{
+    int intParam;      // IntParam
+    char strParam[MAX_COLNAME_LENGTH];   //StringParam  && colname
+    bool boolValue;    //BOOL
+    char ifNull[4];        //NULLX
+    double approxNumParam;  //appronum
+  }ltype;
+} LiteralType;
+
+typedef struct AnyExpr
+{
+  LiteralType *ltrlType;
+  struct ComparisionExpr_Stru *whExpr;
+  struct WhereStmtClause *whcls;
+}AnyExpr;
+
+typedef struct Comparision_Stru{  // Expression
+  NodeTag type;
+  int exprType;              // Literal  or   Any()   or   func()   or  IN ...
+  LiteralType *ltrlType;
+  char * funcOpts;
+  
+  AnyExpr *anyExpr;
+
+  List *inExpr;             //  in [  a,  b, c, d ....]
+} Comparision_Stru;
+
+typedef struct SubCompExpr   // for PartialComparisonExpression
+{
+  NodeTag type;
+  int partialType;            /* 
+                                 "IN" ----------- 0
+                                ">= ,<=" -------- 1
+                               */
+
+  int compType;             // >  >>  >= < ..... 
+  Comparision_Stru *subComprisionExpr;  //Expression
+} SubCompExpr;
 
 typedef struct ComparisionExpr_Stru
 {
   NodeTag type;                     /* type ----   for malloc */
   int exprType;                     /* AND  OR   XOR   NOT   ->   type*/
-  void *comp;                       /* remain  */
+
+  Comparision_Stru *comp;                       /* TO DO .....  Expression   */
+
+  bool exPartialComExpr;          // whether exists PartialComparisionExpress
+  SubCompExpr *subComp;              // pointer to subComp
+
   bool branch;                      /* branch or not (void * is NULL)*/
   struct ComparisionExpr_Stru * lchild;
   struct ComparisionExpr_Stru * rchild;
   struct ComparisionExpr_Stru * nchild;
 } ComparisionExpr_Stru;
 
-typedef struct WhereStmtClause
+typedef struct WhereStmtClause  
 {
   NodeTag type;
-  bool exWhereExpr;             // whether exists Where expr??? 
   ComparisionExpr_Stru *root;   // root of tree
 } WhereStmtClause;
 

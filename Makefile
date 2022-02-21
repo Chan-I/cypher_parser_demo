@@ -7,7 +7,7 @@ run: parser.tab.o scanner.o ast.o module.o main.o
 	$(CC) -g -o $@ $+
 
 clean:
-	rm -f run *.o parser.tab* scanner.[ch] *.output
+	rm -f run *.o parser.tab* scanner.[ch] *.output .*.swp
 
 parser.tab.o: scanner.c
 

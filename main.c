@@ -7,7 +7,7 @@ main(int argc, char **argv)
 	int i, res;
 	char *sql;
 	extern int yydebug ;
-	mod = new_module_from_string("WHERE any(name in n.name WHERE name = 'master') AND id(b) IN [101, 201, 202, 302, 404]  return  a.id , b.name as bcol, count(distinct c.name), min( d.guid) order by e.no limit 100;");
+	mod = new_module_from_string("MATCH ()-[r]-(c) WHERE any(name in n.name WHERE name = 'master') AND id(b) IN [101, 201, 202, 302, 404]  return  a.id , b.name as bcol, count(distinct c.name), min( d.guid) order by e.no limit 100;");
 	res = parse_module(mod);
 	
 	if(!res) // success

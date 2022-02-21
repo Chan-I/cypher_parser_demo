@@ -15,6 +15,7 @@
 void yyerror (yyscan_t *locp, module *mod, char const *msg);
 
 char colNameAttr[MAX_COLNAME_LENGTH];
+char colNameRelType[MAX_COLNAME_LENGTH * 4];
 char attrNum[MAX_COLNAME_LENGTH];
 %}
 
@@ -26,26 +27,33 @@ char attrNum[MAX_COLNAME_LENGTH];
 %union 
 {
 	char *keyword;		/* type for keywords*/
-
     int intval;
 	int64_t lintval;
     double floatval;
     char *strval;
     int subtok;
-
-	Node	*node;
+	AnnoyPattern *annoyptn;
+	AnyExpr *anyExpr;
+	ComparisionExpr_Stru *cmpexprstru;
+	Comparision_Stru *cmpStru;
+	IntLiteralPattern *intltpt;
+	IntStringAppro *intStrApp;
 	List 	*list;
 	LiteralType *ltrlType;
-	AnyExpr *anyExpr;
-	IntStringAppro *intStrApp;
-	Comparision_Stru *cmpStru;
-	SubCompExpr *subCompExpr;
+	MapLiterals *maplit;
+	MatchStmtClause *mchstmtcls;
+	NODEPattern *nodeptn;
+	Node	*node;
+	NodeLabel *nodelbl;
 	OrderByStmtClause *odb;
+	PatternEleChain *ptnEleChn;
+	PatternList *ptnlist;
+	RelationShip *relship;
+	RelationShipPattern *relshipptn;
 	ReturnCols	*rtcols;
 	ReturnStmtClause	*rtstmtcls;	
+	SubCompExpr *subCompExpr;
 	WhereStmtClause 	*whstmtcls;
-	ComparisionExpr_Stru *cmpexprstru;
-	
 } /* Generate YYSTYPE from these types:  */
 
 %token <intval> INTNUM
@@ -69,41 +77,64 @@ char attrNum[MAX_COLNAME_LENGTH];
 %left '(' ')'
 %left '.'
 
-%token <keyword> ALL AND ANY AS ASC BY CONTAINS COUNT DESC DISTINCT ENDS EOL EXISTS 
-%token <keyword> IN IS LIMIT MATCH MERGE NOT NULLX ON OR ORDER RETURN UNIONS WHERE WITH XOR 
-%type <mod> sexps
+%token <keyword> ALL AND ANY AS ASC 
+%token <keyword> BY 
+%token <keyword> CONTAINS COUNT 
+%token <keyword> DESC DISTINCT 
+%token <keyword> ENDS EOL EXISTS 
+%token <keyword> IN IS 
+%token <keyword> LIMIT 
+%token <keyword> MATCH MERGE 
+%token <keyword> NOT NULLX 
+%token <keyword> ON OR ORDER 
+%token <keyword> RETURN 
+%token <keyword> UNIONS 
+%token <keyword> WHERE WITH 
+%token <keyword> XOR 
 
-%type <rtstmtcls> ReturnClause 
-%type <list> ReturnExprList StringList IntList ApproxnumList INExpression
-%type <node> ReturnExpr StringParamNode IntParamNode ApproxnumParamNode
-%type <intval> LimitClause AscDescOpt DistinctOpt 
-%type <lintval> IntParam
-%type <odb> OrderByClause
 
-%type <whstmtcls> WhereClause
+%type <annoyptn> 	AnonymousPatternPart PatternElement 
+%type <anyExpr> 	FilterExpression
+%type <cmpStru> 	Expression
 %type <cmpexprstru> WhereExpression
-
-%type <floatval> ApproxnumParam 
-%type <ltrlType> Literal
-%type <strval> FuncOpt
+%type <floatval> 	ApproxnumParam 
+%type <intltpt> 	IntegerLiteralPattern
+%type <intval> 		AscDescOpt DistinctOpt LimitClause
+%type <lintval> 	IntegerLiteral IntParam
+%type <list> 		ApproxnumList 
+			 		INExpression IntList 
+			 		MapLiteralPattern 
+			 		Pattern PatternElementChainClause PatternElementChains 
+			 		ReturnExprList 
+			 		StringList 
+%type <ltrlType> 	Literal
+%type <maplit> 		PropertiesPattern MapLiteralClause
+%type <mod> 		sexps
+%type <mchstmtcls> 	MatchClause
+%type <node> 		ApproxnumParamNode 
+			 		IntParamNode 
+					MapLiteralPatternPart 
+			 		PatternElementChain PatternPart 
+			 		ReturnExpr 
+			 		StringParamNode 
+%type <nodelbl> 	NodeLabelsPattern
+%type <nodeptn> 	NodePattern
+%type <odb> 		OrderByClause
+%type <relship> 	RelationshipDetail
+%type <relshipptn> 	RelationshipPattern
+%type <rtstmtcls> 	ReturnClause 
+%type <strval>  	ColName
+					FuncOpt 
+					IntegerLiteralColonPatternPart IntegerLiteralPatternPart
+					NodeLabel NodeLabels NumberLiteral 
+					OptAsAlias 
+					PropertyKey 
+					RelTypeName RelTypeNamePattern RelationshipTypePattern 
+					StringParam
+					Variable_Pattern 
 %type <subCompExpr> PartialComparisonExpression
-%type <cmpStru> Expression
-%type <anyExpr> FilterExpression
+%type <whstmtcls> 	WhereClause
 
-%type <strval> AnonymousPatternPart 
-
-%type <strval> ColName Cypher CypherClause
-
-
-%type <strval> IntegerLiteralColonPatternPart IntegerLiteralPattern IntegerLiteralPatternPart
-
-%type <strval> MapLiteral MapLiteralClause MapLiteralPattern MapLiteralPatternPart MatchClause
-%type <strval> NodeLabel NodeLabels NodeLabelsPattern NodePattern NumberLiteral
-%type <strval> OptAsAlias 
-%type <strval>  Pattern PatternElement PatternElementChain PatternElementChainClause PatternPart PropertiesPattern PropertyKey 
-%type <strval> RelTypeName RelTypeNamePattern RelationshipDetail RelationshipPattern RelationshipTypePattern 
-%type <strval> StringParam
-%type <strval> Variable_Pattern
 
 
 
@@ -111,121 +142,460 @@ char attrNum[MAX_COLNAME_LENGTH];
 %%
 %start sexps;
 
-Cypher:					/* nil */	{}
-| Cypher EOL			{printf(">");}
-| Cypher CypherClause EOL		{printf(">");}
-;
 
-CypherClause: MatchClause WhereClause ReturnClause     {emit("Cypher");}
+
+sexps:
+	MatchClause WhereClause ReturnClause	
+								{
+									mod -> mch = $1;
+									if ($2 == NULL)
+									{
+										mod->exWhereExpr = false;
+										mod->wh = NULL;
+									}
+									else
+									{
+										mod->exWhereExpr = true;
+										mod->wh = $2;
+									}																		
+									mod->rt = $3;
+								}
+;
 /* Match Clause */
 
-MatchClause: MATCH Pattern        {emit("MatchClause");}
+MatchClause: MATCH Pattern      {
+									emit("MatchClause");
+									$$ = makeNode(MatchStmtClause);
+									$$ -> patternList = $2;
+								}
 ;
 
-Pattern:PatternPart                            {emit("Pattern");}
-| Pattern ',' PatternPart                      {emit("Patterns:  ,  ");}
+Pattern:PatternPart             {
+									emit("Pattern");
+									$$ = list_make1($1);
+								}
+| Pattern ',' PatternPart       {
+									emit("Patterns:  ,  ");
+									$$ = lappend($1, $3);
+								}
 ;
 
-PatternPart:AnonymousPatternPart               {emit("Pattern_part");}
-| ColName COMPARISON AnonymousPatternPart      {emit("pattern_part  %d ",$2);}
+PatternPart:AnonymousPatternPart               
+								{
+									emit("Pattern_part");
+									PatternList *ptl = makeNode(PatternList);
+									ptl -> onlyAnnoyPtnPart = false;
+									ptl -> annoyPattern = $1;
+									$$ = (Node *)ptl;
+								}
+| ColName COMPARISON AnonymousPatternPart      
+								{	
+									emit("pattern_part  %d ",$2);
+									PatternList *ptl = makeNode(PatternList);
+									ptl -> onlyAnnoyPtnPart = true;
+									strncpy(ptl -> colName, $1, strlen($1));
+									ptl -> comparision = $2;   // >>  >=  >  ....
+									ptl -> annoyPattern = $3;
+									$$ = (Node *)ptl;
+								}
 ;
 
-AnonymousPatternPart:PatternElement             {emit("AnonymousPatternPart");}
+AnonymousPatternPart:PatternElement             
+								{
+									emit("AnonymousPatternPart");
+									$$ = $1;
+								}
 ;
 
-PatternElement:'(' PatternElement ')'           {emit("( PatternElement )");}
-| NAME '(' PatternElement ')'                   {emit("Function Name ( )");}
-| NodePattern PatternElementChainClause        {emit("NodePattern : ");}
+PatternElement:'(' PatternElement ')'           
+								{
+									emit("( PatternElement )");
+									$$ = makeNode(AnnoyPattern);
+									$$ -> ifName = false;
+								}
+| NAME '(' PatternElement ')'   {
+									emit("Function Name ( )");
+									$$ = makeNode(AnnoyPattern);
+									$$ -> ifName = true;
+								}
+| NodePattern PatternElementChainClause        
+								{	
+									emit("NodePattern : ");
+									$$ = makeNode(AnnoyPattern);
+									$$ -> ndPattern = $1;
+									if ($2 == NULL)
+									{
+										$$ -> exptEleChain = false;
+										$$ -> ptnElementChain = NULL;		
+									}	
+									else
+									{
+										$$ -> exptEleChain = true;
+										$$ -> ptnElementChain = $2;
+									}	
+								}
 ;
 
-PatternElementChainClause:                     {emit("");}
-| PatternElementChains                           {emit("PatternElementChain");}
+PatternElementChainClause:      {
+									emit("");
+									$$ = NULL;
+								}
+| PatternElementChains          {	
+									$$ = $1;
+								}
 ;
 
-PatternElementChains:PatternElementChain        {emit("PatternElementChain");}
-| PatternElementChains PatternElementChain      {emit("PatternElementChain PatternElementChain ...");}
+PatternElementChains:PatternElementChain        
+								{
+									emit("PatternElementChain");
+									$$ = list_make1($1);
+								}
+| PatternElementChains PatternElementChain      
+								{	
+									emit("PatternElementChain PatternElementChain ...");
+									$$ = lappend($1,$2);
+								}
 ;
 
-PatternElementChain:RelationshipPattern NodePattern     {emit("PatternElementChain");}
+PatternElementChain:RelationshipPattern NodePattern     
+								{
+									emit("PatternElementChain");
+									PatternEleChain *ptelch = makeNode(PatternEleChain);
+									ptelch -> ndPattern = $2;
+									ptelch -> relshipPattern = $1;
+									$$ = (Node *)ptelch;
+								}
 ;
 
-NodePattern:'(' Variable_Pattern NodeLabelsPattern PropertiesPattern ')'  {emit("NodePattern");}
+NodePattern:'(' Variable_Pattern NodeLabelsPattern PropertiesPattern ')'  
+						{	
+							emit("NODEPattern");
+							$$ = makeNode(NODEPattern);
+							if ($2 == NULL)
+								$$ -> vrbPattern = false;
+							else
+							{
+								$$ -> vrbPattern = true;
+								strncpy($$ -> colName,$2,strlen($2));
+							}
+
+							if ($3 == NULL)
+								$$ -> ifnodeLab = false;
+							else
+							{
+								$$ -> ifnodeLab = true;
+								$$ -> nodeLab = $3;
+							}
+
+							if ($4 == NULL)
+							{
+								$$ -> exmaplit = false;
+								$$ -> maplit = NULL;
+							}
+							else
+							{
+								$$ -> exmaplit = true;
+								$$ -> maplit = $4;
+							}
+						}
 ;
 
-Variable_Pattern:               {emit("Variable is NULL");}
-| ColName                      {emit("Variable:ColName");}
+Variable_Pattern:               {	
+									emit("Variable is NULL");
+									$$ = NULL;
+								}
+| ColName                       {	
+									emit("Variable:ColName");
+									$$ = $1;
+								}
 ;
 
-NodeLabelsPattern:             {emit("NodeLabelsPattern");}
-| NodeLabel NodeLabels          {emit("NodeLabel : ");}
+NodeLabelsPattern:              {
+									emit("NodeLabelsPattern");
+									$$ = NULL;
+								}
+| NodeLabel NodeLabels          {	
+									emit("NodeLabel : ");
+									$$  = makeNode(NodeLabel);
+									if ($1 == NULL)
+										$$ -> exlabelName = false;	
+									else
+									{
+										$$ -> exlabelName = true;
+										strncpy($$ -> labelName, $1, strlen($1));
+									}
+
+									if ($2 == NULL)
+										$$ -> exlabelNames = false;
+									else
+									{
+										$$ -> exlabelNames = true;
+										strncpy($$ -> labelNames, $2, strlen($2));
+									}
+								}
 ;
 
-NodeLabels:                     {emit("NodeLabels");}
-| NodeLabel                     {emit("NodeLabel");}
+NodeLabels:                     {
+									emit("NodeLabels");
+									$$ = NULL;
+								}
+| NodeLabel                     {	
+									emit("NodeLabel");
+									$$ = $1;
+								}
 ;
 
-NodeLabel: ':' ColName         {emit("NodeLabel : ColName");}
+NodeLabel: ':' ColName          {	
+									emit("NodeLabel : ColName");
+									$$ = $2;
+								}
 ;
 
-PropertiesPattern:             {emit("PropertiesPattern is NULL");}
-| MapLiteral                    {emit("MapLiteral");}
+PropertiesPattern:              {
+									emit("PropertiesPattern is NULL");
+									$$ = NULL;
+								}
+| '{' MapLiteralClause '}'      {
+									emit("MapLiteral");
+									$$ = makeNode(MapLiterals);
+									if ($2 == NULL)
+									{
+										$$ -> exmpltpt = false;
+										$$ = NULL;
+									}
+									else
+									{
+										$$ -> exmpltpt = true;
+										$$ = $2;
+									}
+								}
 ;
 
-MapLiteral:'{' MapLiteralClause '}'                        {emit("{MapLiteralClause}");}
+MapLiteralClause:               {
+									emit("MapLiteralClause");
+									$$ = NULL;
+								}
+| MapLiteralPattern             {
+									emit("MapLiteralPattern");
+									$$ -> mapLitPattern = $1;
+								}
 ;
 
-MapLiteralClause:                                          {emit("MapLiteralClause");}
-| MapLiteralPattern                                        {emit("MapLiteralPattern");}
+MapLiteralPattern:MapLiteralPatternPart                  
+								{
+									emit("MapLiteralPatternPart");
+									$$ = list_make1($1);
+								}
+| MapLiteralPattern ',' MapLiteralPatternPart            
+								{
+									emit("MapLiteralPatternPart , MapLiteralPatternPart");
+									$$ = lappend($1,$3);
+								}
 ;
 
-MapLiteralPattern:MapLiteralPatternPart                  {emit("MapLiteralPatternPart");}
-| MapLiteralPattern ',' MapLiteralPatternPart            {emit("MapLiteralPatternPart , MapLiteralPatternPart");}
+MapLiteralPatternPart:PropertyKey ':' WhereExpression         
+								{
+									emit("PropertyKey : Expression");
+									MapLiteralPattern *mapltpat = makeNode(MapLiteralPattern);
+									strncpy(mapltpat -> colName, $1, strlen($1));
+									mapltpat -> whexpr = $3;
+									$$ = (Node *)mapltpat;
+								}
 ;
 
-MapLiteralPatternPart:PropertyKey ':' WhereExpression         {emit("PropertyKey : Expression");}
+PropertyKey:ColName             {	
+									emit("PropertyKey:ColName");
+									$$ = $1;
+								}
 ;
 
-PropertyKey:ColName           {emit("PropertyKey:ColName");}
+RelationshipPattern:LEFTARROW RelationshipDetail RIGHTARROW  
+										{
+											emit("<-   ->");
+											$$ = makeNode(RelationShipPattern);
+											$$ -> reltype = 1;   
+											$$ -> relShip = $2;
+										}
+| LEFTARROW RelationshipDetail '-'      {
+											emit("<-   -");
+											$$ = makeNode(RelationShipPattern);
+											$$ -> reltype = 2;  
+											$$ -> relShip = $2;
+										}
+| '-' RelationshipDetail RIGHTARROW     {	
+											emit("-    ->");
+											$$ = makeNode(RelationShipPattern);
+											$$ -> reltype = 3;  
+											$$ -> relShip = $2;
+										}
+| '-' RelationshipDetail '-'            {
+											emit("-    -");
+											$$ = makeNode(RelationShipPattern);
+											$$ -> reltype = 4;  
+											$$ -> relShip = $2;
+										}
+| '-' RIGHTARROW                        {	
+											emit("-->");
+											$$ = makeNode(RelationShipPattern);
+											$$ -> reltype = 5;  
+											$$ -> relShip = NULL;
+										}
+| LEFTARROW '-'                         {
+											emit("<--");
+											$$ = makeNode(RelationShipPattern);
+											$$ -> reltype = 6;  
+											$$ -> relShip = NULL;
+										}
+| '-''-'                                {	
+											emit("--");
+											$$ = makeNode(RelationShipPattern);
+											$$ -> reltype = 7;  
+											$$ -> relShip = NULL;
+										}
 ;
 
-RelationshipPattern:LEFTARROW RelationshipDetail RIGHTARROW  {emit("<-   ->");}
-| LEFTARROW RelationshipDetail '-'                        {emit("<-   -");}
-| '-' RelationshipDetail RIGHTARROW                        {emit("-    ->");}
-| '-' RelationshipDetail '-'                            {emit("-    -");}
-| '-' RIGHTARROW                                        {emit("-->");}
-| LEFTARROW '-'                                         {emit("<--");}
-| '-''-'                                                {emit("--");}
+RelationshipDetail: 
+ '[' Variable_Pattern RelationshipTypePattern IntegerLiteralPattern PropertiesPattern ']'    
+										{	
+											emit("[RelationshipDetail]");
+											$$ = makeNode(RelationShip);
+											$$ -> hasbracket = true;
+
+											if ($2 == NULL)
+											{
+												$$ -> hasPatternVal = false;
+											}
+											else
+											{
+												$$ -> hasPatternVal = true;
+												strncpy($$ -> patternVal,$2,strlen($2)+1);
+											}
+
+											if ($3 == NULL)
+											{
+												$$ -> hasRelshipTypePattern = false;
+												$$ -> RelshipTypePattern = NULL;
+											}
+											else
+											{
+												$$ -> hasRelshipTypePattern = true;	
+												$$ -> RelshipTypePattern = $3;
+											}
+
+											if ($4 == NULL)
+											{
+												$$ -> hasIntLitPattern = false;
+												$$ -> intLitPat = NULL;
+											}
+											else
+											{
+												$$ -> hasIntLitPattern = true;
+												$$ -> intLitPat = $4;
+											}
+
+											if ($5 == NULL)
+											{
+												$$ -> ifMapLiteral = false;	
+												$$ -> maplit = NULL;
+											}
+											else
+											{
+												$$ -> ifMapLiteral = true;	
+												$$ -> maplit = $5;
+											}
+										}
 ;
 
-RelationshipDetail: Variable_Pattern RelationshipTypePattern IntegerLiteralPattern PropertiesPattern      {emit("RelationshipDetail");}
-'[' Variable_Pattern RelationshipTypePattern IntegerLiteralPattern PropertiesPattern ']'    {emit("[RelationshipDetail]");}
+RelationshipTypePattern:                {	
+											emit("RelationshipTypePattern is NULL");
+											$$ = NULL;
+										}
+| ':' RelTypeName RelTypeNamePattern    {	
+											emit(": RelTypeName RelTypeNamePattern");
+											sprintf(colNameRelType,":%s %s",$2,$3);
+											strncpy($$,colNameRelType,strlen(colNameRelType));
+											memset(colNameRelType,0,strlen(colNameRelType));
+										}
 ;
 
-RelationshipTypePattern:               {emit("RelationshipTypePattern is NULL");}
-| ':' RelTypeName RelTypeNamePattern   {emit(": RelTypeName RelTypeNamePattern");}
+RelTypeNamePattern:         
+							{
+								$$ = NULL;
+							}
+| '|' RelTypeName           
+							{
+								emit("| RelTypeName");
+								sprintf(colNameAttr,"|%s", $2);
+								strncpy($$,colNameAttr,strlen(colNameAttr));
+								memset(colNameAttr,0,MAX_COLNAME_LENGTH);
+							}
+| '|' ':' RelTypeName       {	
+								emit("| : RelTypeName");
+								sprintf(colNameAttr,"|:%s", $3);
+								strncpy($$,colNameAttr,strlen(colNameAttr));
+								memset(colNameAttr,0,MAX_COLNAME_LENGTH);
+							}
 ;
 
-RelTypeNamePattern:        {}
-| '|' RelTypeName           {emit("| RelTypeName");}
-| '|' ':' RelTypeName       {emit("| : RelTypeName");}
+RelTypeName:ColName        {$$ = $1;}
 ;
 
-RelTypeName:ColName        {emit("RelTypeName:ColName");}
+IntegerLiteralPattern:                      {
+												emit("IntegerLiteralPattern is NULL");
+												$$ = NULL;
+											}
+| '*' IntegerLiteralPatternPart IntegerLiteralColonPatternPart   
+											{
+												emit("* IntegerLiteralPatternPart");
+												$$ = makeNode(IntLiteralPattern);
+												
+												if ($2 == NULL)
+												{
+													$$ -> exintLit = false;
+												}
+												else
+												{
+													$$ -> exintLit = true;
+													$$ -> intLit = atoi($2);
+												}
+
+												if ($3 == NULL)
+												{
+													$$ -> exintLitColon = false;
+												}
+												else
+												{
+													$$ -> exintLitColon = true;
+													$$ -> intLitColon = atoi($3);
+												}
+											}
 ;
 
-IntegerLiteralPattern:                                              {emit("IntegerLiteralPattern is NULL");}
-| '*' IntegerLiteralPatternPart IntegerLiteralColonPatternPart   {emit("* IntegerLiteralPatternPart");}
+IntegerLiteralColonPatternPart:             {$$ = NULL;}
+| PPOINT IntegerLiteralPatternPart          {
+												emit(".. IntegerLiteralPatternPart");
+												sprintf(colNameAttr,"%s%s",$1,$2);
+												$$ = malloc(strlen(colNameAttr) * sizeof(char));
+												strncpy($$,colNameAttr,strlen(colNameAttr));
+												memset(colNameAttr,0,strlen(colNameAttr));
+											}
 ;
 
-IntegerLiteralColonPatternPart:           {}
-| PPOINT IntegerLiteralPatternPart        {emit(".. IntegerLiteralPatternPart");}
+IntegerLiteralPatternPart:                	{$$ = NULL;}
+| IntegerLiteral                            {
+												emit("IntegerLiteral");
+												sprintf(colNameAttr,"%d",$1);
+												printf("-----%d\n",$1);
+												$$ = malloc(strlen(colNameAttr) * sizeof(char));
+												strncpy($$,colNameAttr,strlen(colNameAttr));
+												memset(colNameAttr,0,strlen(colNameAttr));
+											}
 ;
 
-IntegerLiteralPatternPart:                {}
-| IntegerLiteral                            {emit("IntegerLiteral");}
-;
-
-IntegerLiteral:INTNUM                       {emit("INTNUM %d",$1);}
+IntegerLiteral:INTNUM                       {
+												emit("INTNUM %d",$1);
+												$$ = $1;
+											}
 ;
 
 
@@ -523,22 +893,6 @@ ApproxnumList:ApproxnumParamNode        {
 											$$ = lappend($1,$3);
 										}
 ;
-
-
-sexps:
-	WhereClause ReturnClause	{
-									if ($1 == NULL)
-									{
-										mod->exWhereExpr = false;
-										mod->wh = NULL;
-									}
-									else
-									{
-										mod->exWhereExpr = true;
-										mod->wh = $1;
-									}																		
-									mod->rt = $2;
-								}
 
 ReturnClause:  RETURN DistinctOpt ReturnExprList OrderByClause LimitClause ';'
 				{

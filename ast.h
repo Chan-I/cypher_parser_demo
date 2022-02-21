@@ -49,7 +49,18 @@ typedef enum NodeTag
     T_SubCompExpr,
     T_IntStringAppro,
     T_AnyExpr,
-    T_LiteralType
+    T_LiteralType,
+    T_NodeLabel,
+    T_NODEPattern,
+    T_MapLiteralPattern,
+    T_MapLiterals,
+    T_RelationShip,
+    T_RelationShipPattern,
+    T_PatternEleChain,
+    T_AnnoyPattern,
+    T_PatternList,
+    T_MatchStmtClause,
+    T_IntLiteralPattern
 }NodeTag;
 
 typedef struct Node
@@ -231,9 +242,112 @@ typedef struct WhereStmtClause
 
 //----------------------------------Match Clause---------------------------------------
 
-typedef struct MatchStmtClause
+typedef struct NodeLabel
 {
-  void * a;
+  NodeTag type;
+  bool exlabelName;
+  char labelName[MAX_COLNAME_LENGTH];
+  
+  bool exlabelNames;
+  char labelNames[MAX_COLNAME_LENGTH];
+} NodeLabel;
+
+typedef struct NODEPattern
+{
+  NodeTag type;
+  bool vrbPattern;
+  char colName[MAX_COLNAME_LENGTH];
+
+  bool ifnodeLab;
+  NodeLabel *nodeLab;
+
+  bool exmaplit;
+  struct MapLiterals *maplit;
+
+} NODEPattern;
+
+typedef struct MapLiteralPattern      // MapLiteralPatternPart
+{
+  NodeTag type;
+  char colName[MAX_COLNAME_LENGTH];
+  struct ComparisionExpr_Stru *whexpr;
+} MapLiteralPattern;
+
+typedef struct MapLiterals          //MapLiteralClause
+{
+  NodeTag type;
+  bool exmpltpt;
+  List *mapLitPattern;
+} MapLiterals;
+
+typedef struct IntLiteralPattern
+{
+  NodeTag type;
+  bool exintLit;
+  int intLit;                       //       [* 3 .. 4 ]
+  bool exintLitColon;
+  int intLitColon;                  //       [* 3 .. 4 ]
+} IntLiteralPattern;
+
+typedef struct RelationShip         //RelationshipDetail
+{
+  NodeTag type;
+  bool hasbracket;                  //  id exists  [ 
+  
+  bool hasPatternVal;
+  char patternVal[MAX_COLNAME_LENGTH];
+  
+  bool hasRelshipTypePattern;
+  char * RelshipTypePattern;
+
+  bool hasIntLitPattern;
+  IntLiteralPattern *intLitPat;
+
+  bool ifMapLiteral;
+  MapLiterals *maplit;
+
+  //
+} RelationShip;
+
+typedef struct RelationShipPattern
+{
+  NodeTag type;
+  int reltype;                     // <- ->   <- -    -->  ....  
+  RelationShip *relShip;
+} RelationShipPattern;
+
+typedef struct PatternEleChain
+{
+  NodeTag type;
+  NODEPattern *ndPattern;
+  RelationShipPattern *relshipPattern;
+
+} PatternEleChain;
+
+typedef struct AnnoyPattern        // AnonymousPatternPart PatternElement
+{
+  NodeTag type;
+  bool ifName;
+  char name[MAX_COLNAME_LENGTH];
+  NODEPattern *ndPattern;
+
+  bool exptEleChain;
+  List *ptnElementChain;
+} AnnoyPattern;
+
+typedef struct PatternList          // 
+{
+  NodeTag type;
+  bool onlyAnnoyPtnPart;
+  char colName[MAX_COLNAME_LENGTH];
+  int comparision;
+  AnnoyPattern *annoyPattern;
+} PatternList;
+
+typedef struct MatchStmtClause      // MatchClause
+{
+  NodeTag type;
+  List *patternList;              // Pattern
 } MatchStmtClause;
 
 #endif // __AST_H

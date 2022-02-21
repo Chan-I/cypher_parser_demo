@@ -5,6 +5,7 @@
 .vscode/
 scanner.c
 scanner.h
-*.output
+.*.output
 run
+*.swp
 test

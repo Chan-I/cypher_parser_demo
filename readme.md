@@ -1,4 +1,5 @@
 ```sql
+match (a) 
 MATCH (a:Meta) RETURN count(distinct a.name)
 MATCH (a:Meta) WHERE a.sys_time < 0 OR a.node_id > 845 RETURN count(a)
 MATCH (n) WHERE id(n) = 345 RETURN n.mono_time, n.sys_time, n.name

@@ -6,7 +6,6 @@
 %define parse.error verbose
 
 %{
-#include <stdio.h>
 #include "module.h"
 #include "ast.h"
 #include "parser.tab.h"
@@ -193,7 +192,10 @@ PatternPart:AnonymousPatternPart
 									emit("pattern_part  %d ",$2);
 									PatternList *ptl = makeNode(PatternList);
 									ptl -> onlyAnnoyPtnPart = true;
-									strncpy(ptl -> colName, $1, strlen($1));
+									if (strlen($1) <= MAX_COLNAME_LENGTH)
+										strncpy(ptl -> colName, $1, strlen($1));
+									else
+										ERROR("colName is too long!");
 									ptl -> comparision = $2;   // >>  >=  >  ....
 									ptl -> annoyPattern = $3;
 									$$ = (Node *)ptl;
@@ -276,7 +278,10 @@ NodePattern:'(' Variable_Pattern NodeLabelsPattern PropertiesPattern ')'
 							else
 							{
 								$$ -> vrbPattern = true;
-								strncpy($$ -> colName,$2,strlen($2));
+								if (strlen($2) <= MAX_COLNAME_LENGTH)
+									strncpy($$ -> colName,$2,strlen($2));
+								else
+									ERROR("colName is too long!");
 							}
 
 							if ($3 == NULL)
@@ -322,7 +327,10 @@ NodeLabelsPattern:              {
 									else
 									{
 										$$ -> exlabelName = true;
-										strncpy($$ -> labelName, $1, strlen($1));
+										if (strlen($1) <= MAX_COLNAME_LENGTH)
+											strncpy($$ -> labelName, $1, strlen($1));
+										else
+											ERROR("LabelName is too long!");
 									}
 
 									if ($2 == NULL)
@@ -330,7 +338,10 @@ NodeLabelsPattern:              {
 									else
 									{
 										$$ -> exlabelNames = true;
-										strncpy($$ -> labelNames, $2, strlen($2));
+										if (strlen($2) <= MAX_COLNAME_LENGTH)
+											strncpy($$ -> labelNames, $2, strlen($2));
+										else
+											ERROR("LabelName is too long!");
 									}
 								}
 ;
@@ -397,7 +408,10 @@ MapLiteralPatternPart:PropertyKey ':' WhereExpression
 								{
 									emit("PropertyKey : Expression");
 									MapLiteralPattern *mapltpat = makeNode(MapLiteralPattern);
-									strncpy(mapltpat -> colName, $1, strlen($1));
+									if (strlen($1) <= MAX_COLNAME_LENGTH)
+										strncpy(mapltpat -> colName, $1, strlen($1));
+									else
+										ERROR("colName is too long!");
 									mapltpat -> whexpr = $3;
 									$$ = (Node *)mapltpat;
 								}
@@ -468,7 +482,10 @@ RelationshipDetail:
 											else
 											{
 												$$ -> hasPatternVal = true;
-												strncpy($$ -> patternVal,$2,strlen($2)+1);
+												if (strlen($2) < MAX_COLNAME_LENGTH)
+													strncpy($$ -> patternVal,$2,strlen($2)+1);
+												else
+													ERROR("PatternVal is too long!");
 											}
 
 											if ($3 == NULL)
@@ -513,7 +530,10 @@ RelationshipTypePattern:                {
 | ':' RelTypeName RelTypeNamePattern    {	
 											emit(": RelTypeName RelTypeNamePattern");
 											sprintf(colNameRelType,":%s %s",$2,$3);
-											strncpy($$,colNameRelType,strlen(colNameRelType));
+											if (strlen(colNameRelType) <= MAX_COLNAME_LENGTH)
+												strncpy($$,colNameRelType,strlen(colNameRelType));
+											else
+												ERROR("colName is too long!");
 											memset(colNameRelType,0,strlen(colNameRelType));
 										}
 ;
@@ -526,13 +546,19 @@ RelTypeNamePattern:
 							{
 								emit("| RelTypeName");
 								sprintf(colNameAttr,"|%s", $2);
-								strncpy($$,colNameAttr,strlen(colNameAttr));
+								if (strlen(colNameAttr) <= MAX_COLNAME_LENGTH)
+									strncpy($$,colNameAttr,strlen(colNameAttr));
+								else
+									ERROR("colName is too long!");
 								memset(colNameAttr,0,MAX_COLNAME_LENGTH);
 							}
 | '|' ':' RelTypeName       {	
 								emit("| : RelTypeName");
 								sprintf(colNameAttr,"|:%s", $3);
-								strncpy($$,colNameAttr,strlen(colNameAttr));
+								if (strlen(colNameAttr) <= MAX_COLNAME_LENGTH)
+									strncpy($$,colNameAttr,strlen(colNameAttr));
+								else
+									ERROR("colName is too long!");
 								memset(colNameAttr,0,MAX_COLNAME_LENGTH);
 							}
 ;
@@ -576,7 +602,10 @@ IntegerLiteralColonPatternPart:             {$$ = NULL;}
 												emit(".. IntegerLiteralPatternPart");
 												sprintf(colNameAttr,"%s%s",$1,$2);
 												$$ = malloc(strlen(colNameAttr) * sizeof(char));
-												strncpy($$,colNameAttr,strlen(colNameAttr));
+												if (strlen(colNameAttr) <= MAX_COLNAME_LENGTH)
+													strncpy($$,colNameAttr,strlen(colNameAttr));
+												else
+													ERROR("colName is too long!");
 												memset(colNameAttr,0,strlen(colNameAttr));
 											}
 ;
@@ -587,7 +616,10 @@ IntegerLiteralPatternPart:                	{$$ = NULL;}
 												sprintf(colNameAttr,"%d",$1);
 												printf("-----%d\n",$1);
 												$$ = malloc(strlen(colNameAttr) * sizeof(char));
-												strncpy($$,colNameAttr,strlen(colNameAttr));
+												if (strlen(colNameAttr) <= MAX_COLNAME_LENGTH)
+													strncpy($$,colNameAttr,strlen(colNameAttr));
+												else
+													ERROR("colName is too long!");
 												memset(colNameAttr,0,strlen(colNameAttr));
 											}
 ;
@@ -770,7 +802,10 @@ Literal:IntParam                {
 									emit("StringList");
 									$$ = makeNode(LiteralType);
 									$$->type = 'S';		// StringParm
-									strncpy($$->ltype.strParam, $1, strlen($1));
+									if (strlen($1) <= MAX_COLNAME_LENGTH)
+										strncpy($$->ltype.strParam, $1, strlen($1));
+									else
+										ERROR("colName is too long!");
 								}
 | BOOL                          {
 									emit("BOOL:%d",$1);
@@ -793,7 +828,10 @@ Literal:IntParam                {
 									emit("ColName");
 									$$ = makeNode(LiteralType);
 									$$->type = 'C';		// ColName
-									strncpy($$->ltype.strParam, $1, strlen($1));
+									if (strlen($1) <= MAX_COLNAME_LENGTH)
+										strncpy($$->ltype.strParam, $1, strlen($1));
+									else
+										ERROR("colName is too long!");								
 								}
 ;
 
@@ -802,14 +840,20 @@ FuncOpt:NAME '(' ColName ')'         /* min(a.id) or func(a.id) */
 								emit("%s(",$1);emit(")");
 								sprintf(colNameAttr,"%s(%s)",$1, $3);
 								$$ = (char *)malloc(strlen(colNameAttr) * sizeof(char));
-								strncpy($$, colNameAttr, strlen(colNameAttr));
+								if (strlen(colNameAttr) <= MAX_COLNAME_LENGTH)
+									strncpy($$, colNameAttr, strlen(colNameAttr));
+								else
+									ERROR("colName is too long!");
 								memset(colNameAttr,0,MAX_COLNAME_LENGTH);
 							}
 | EXISTS '(' ColName ')'    {	/* exists(a.id) */ 
 								emit("EXISTS");
 								sprintf(colNameAttr,"EXISTS(%s)",$3);
 								$$ = (char *)malloc(strlen(colNameAttr) * sizeof(char));
-								strncpy($$, colNameAttr, strlen(colNameAttr));
+								if (strlen(colNameAttr) <= MAX_COLNAME_LENGTH)
+									strncpy($$, colNameAttr, strlen(colNameAttr));
+								else
+									ERROR("colName is too long!");
 								memset(colNameAttr,0,MAX_COLNAME_LENGTH);
 							} 
 | COUNT '(' DistinctOpt ColName ')'    /* count(a.id) */     	
@@ -820,7 +864,10 @@ FuncOpt:NAME '(' ColName ')'         /* min(a.id) or func(a.id) */
 								else
 									sprintf(colNameAttr,"COUNT(%s)",$1, $3);
 								$$ = (char *)malloc(strlen(colNameAttr) * sizeof(char));
-								strncpy($$, colNameAttr, strlen(colNameAttr));
+								if (strlen(colNameAttr) <= MAX_COLNAME_LENGTH)
+									strncpy($$, colNameAttr, strlen(colNameAttr));
+								else	
+									ERROR("colName is too long!");
 								memset(colNameAttr,0,MAX_COLNAME_LENGTH);
 							}
 ;
@@ -928,10 +975,16 @@ ReturnExpr:ColName OptAsAlias
 								cols->hasFunc = 0;
 								cols->hasDistinct = 0;
 								// emit("%s",$1);
-								strncpy(cols->colname,$1,MAX_COLNAME_LENGTH);
+								if (strlen($1) <= MAX_COLNAME_LENGTH)
+									strncpy(cols->colname,$1,MAX_COLNAME_LENGTH);
+								else
+									ERROR("colName is too long!");
 								if($2 != NULL)
 								{
-									strncpy(cols->colAlias,$2,MAX_COLNAME_LENGTH);
+									if (strlen($2) <= MAX_COLNAME_LENGTH)
+										strncpy(cols->colAlias,$2,MAX_COLNAME_LENGTH);
+									else
+										ERROR("colName is too long!");
 									cols->hasAlias = 1;
 								} else
 									cols->hasAlias = 0;
@@ -945,14 +998,22 @@ ReturnExpr:ColName OptAsAlias
 								cols->hasDistinct = 0;
 								if($5 != NULL)
 								{
-									strncpy(cols->colAlias,$5,MAX_COLNAME_LENGTH);
+									if (strlen($5) <= MAX_COLNAME_LENGTH)
+										strncpy(cols->colAlias,$5,MAX_COLNAME_LENGTH);
+									else
+										ERROR("colName is too long!");
 									cols->hasAlias = 1;
 								} else
 									cols->hasAlias = 0;
+								if (strlen($1) <= MAX_COLNAME_LENGTH)
+									strncpy(cols->funName,$1,MAX_COLNAME_LENGTH);
+								else
+									ERROR("colName is too long!");
 
-								strncpy(cols->funName,$1,MAX_COLNAME_LENGTH);
-								
-								strncpy(cols->colname,$3,MAX_COLNAME_LENGTH);
+								if (strlen($3) <= MAX_COLNAME_LENGTH)
+									strncpy(cols->colname,$3,MAX_COLNAME_LENGTH);
+								else
+									ERROR("colName is too long!");
 								$$ = (Node *)cols;
 							}
 | COUNT '(' DistinctOpt ColName ')' OptAsAlias
@@ -961,7 +1022,10 @@ ReturnExpr:ColName OptAsAlias
 			
 								if($6 != NULL)
 								{
-									strncpy(cols->colAlias,$6,MAX_COLNAME_LENGTH);
+									if (strlen($6) <= MAX_COLNAME_LENGTH)
+										strncpy(cols->colAlias,$6,MAX_COLNAME_LENGTH);
+									else
+										ERROR("colName is too long!");
 									cols->hasAlias = 1;
 								} else
 									cols->hasAlias = 0;
@@ -969,8 +1033,10 @@ ReturnExpr:ColName OptAsAlias
 								strcpy(cols->funName,"COUNT"); // ?????
 								cols->hasFunc = 1;
 								cols->hasDistinct = $3;
-
-								strncpy(cols->colname,$4,MAX_COLNAME_LENGTH);
+								if (strlen($4) <= MAX_COLNAME_LENGTH)
+									strncpy(cols->colname,$4,MAX_COLNAME_LENGTH);
+								else
+									ERROR("colName is too long!");
 								$$ = (Node *)cols;
 							}
 | NumberLiteral OptAsAlias          
@@ -979,11 +1045,17 @@ ReturnExpr:ColName OptAsAlias
 								
 								cols->hasFunc = 0;
 								cols->hasDistinct = 0;
-								strncpy(cols->colname,$1,MAX_COLNAME_LENGTH);
+								if (strlen($1) <= MAX_COLNAME_LENGTH)
+									strncpy(cols->colname,$1,MAX_COLNAME_LENGTH);
+								else
+									ERROR("colName is too long!");
 
 								if($2 != NULL) 
 								{
-									strncpy(cols->colAlias,$2,MAX_COLNAME_LENGTH);
+									if (strlen($2) <= MAX_COLNAME_LENGTH)
+										strncpy(cols->colAlias,$2,MAX_COLNAME_LENGTH);
+									else
+										ERROR("colName is too long!");
 									cols->hasAlias = 1;
 								} else
 									cols->hasAlias = 0;
@@ -991,31 +1063,19 @@ ReturnExpr:ColName OptAsAlias
 							}
 ; /* [ ... as b] OR  [...]*/
 
-
-
 OptAsAlias: /* no AS Alias*/ 	{$$ = NULL;}
 | AS NAME       				{$$ = $2;}
 ;
-/*
-CountFuncOpt:COUNT '(' DistinctOpt ColName ')'        	
-							{
-								emit("COUNT");
-								if ($3 == 1)
-									sprintf(colNameAttr,"COUNT(DISTINCT %s)",$1, $3);
-								else
-									sprintf(colNameAttr,"COUNT(%s)",$1, $3);
-								strncpy($$, colNameAttr, strlen(colNameAttr));
-								memset(colNameAttr,0,MAX_COLNAME_LENGTH);
-							} 
-;*/
-
 
 OrderByClause: /* no orderby*/ 		{ $$ = NULL; }
 | ORDER BY ColName AscDescOpt    
 					{
 						$$ = makeNode(OrderByStmtClause);
 						$$->ascDesc = $4;
-						strncpy($$->orderByColname, $3 ,MAX_COLNAME_LENGTH); 						
+						if (strlen($3) <= MAX_COLNAME_LENGTH)
+							strncpy($$->orderByColname, $3 ,MAX_COLNAME_LENGTH); 	
+						else
+							ERROR("colName of Ordder is too long!");					
 					}
 ;
 
@@ -1044,7 +1104,10 @@ ColName:NAME
 | NAME '.' NAME  
 				{
 					// emit("ColName");
-					sprintf(colNameAttr,"%s.%s",$1,$3);
+					if (strlen($1) + strlen($3) <= MAX_COLNAME_LENGTH)
+						sprintf(colNameAttr,"%s.%s",$1,$3);
+					else
+						ERROR("ColName too long!");
 					strncpy($$,colNameAttr,MAX_COLNAME_LENGTH); 
 					// $$ = colNameAttr;
 					memset(colNameAttr,0,MAX_COLNAME_LENGTH);
@@ -1054,7 +1117,8 @@ ColName:NAME
 
 %%
 
-void yyerror (yyscan_t *locp, module *mod, char const *msg) {
+void yyerror (yyscan_t *locp, module *mod, char const *msg) 
+{
 	fprintf(stderr, "--> %s\n", msg);
 }
 

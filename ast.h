@@ -7,7 +7,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdarg.h>
- #include <stdint.h>
+#include <stdint.h>
 
 #define MAX_COLNAME_LENGTH 128
 
@@ -34,6 +34,11 @@
 #define DELETE_MATCH_CLAUSE_NODE(a) do {\
   delete_match_clause_node(a);  \
   a = NULL;   \
+}while(0)
+
+#define ERROR(msg)  do {  \
+  yyerror(scanner,mod,msg);  \
+  return 1; \
 }while(0)
 
 typedef enum NodeTag

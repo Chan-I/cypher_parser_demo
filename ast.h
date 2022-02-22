@@ -41,6 +41,12 @@
   return 1; \
 }while(0)
 
+#ifdef __YYEMIT
+  #define _emit emit
+#else
+  #define _emit
+#endif
+
 typedef enum NodeTag
 {
     T_Node,
@@ -161,7 +167,7 @@ typedef struct ReturnStmtClause{
   bool hasOrderBy ;
   bool hasDistinct ;
   bool hasLimit ;
-  int limitNum ;      /* limit 4*/
+  uint64_t limitNum ;      /* limit 4*/
   OrderByStmtClause *odb;
   List *returnCols;
 

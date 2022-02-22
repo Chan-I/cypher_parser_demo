@@ -1,10 +1,13 @@
 *.o
 *.out
+*.output
 *.tab.c
 *.tab.h
 .vscode/
 scanner.c
 scanner.h
+parser.c
+parser.h
 .*.output
 run
 *.swp

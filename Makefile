@@ -1,18 +1,20 @@
 .PHONY: clean
 
-CC := cc
-CFLAGS := -g -O0 -U_YYDEBUG
+CC := gcc
+OPTIONS := -Wmissing-prototypes -Wpointer-arith -Wendif-labels -Wmissing-format-attribute -Wformat-security -Wformat
+DEBUG := -g -O0
+CFLAGS := ${DEBUG} -U_YYDEBUG -D__YYEMIT ${OPTIONS}
 
-run: parser.tab.o scanner.o ast.o module.o main.o
-	$(CC) -g -o $@ $+
+run: parser.o scanner.o ast.o print.o delete.o module.o main.o 
+	$(CC) ${CFLAGS} -g -o $@ $+ 
 
 clean:
-	rm -f run *.o parser.tab* scanner.[ch] *.output .*.swp
+	rm -f run *.o parser.[ch] scanner.[ch] *.output .*.swp
 
-parser.tab.o: scanner.c
+parser.o: scanner.c
 
 scanner.c: scanner.l
-	flex -d --header-file=scanner.h --outfile=scanner.c scanner.l
+	flex -d --header-file=scanner.h --outfile=$@ $^
 
-parser.tab.c: parser.y
-	bison -d parser.y
+parser.c: parser.y
+	bison -Wno-deprecated -vd $^ -o $@

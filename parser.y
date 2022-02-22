@@ -795,13 +795,13 @@ FilterExpression:Literal IN WhereExpression WhereClause
 Literal:IntParam                {
 									emit("Literal");
 									$$ = makeNode(LiteralType);
-									$$->type = 'I';		// Intparam;
+									$$->etype = 'I';		// Intparam;
 									$$->ltype.intParam = $1;
 								}
 | StringParam                   {
 									emit("StringList");
 									$$ = makeNode(LiteralType);
-									$$->type = 'S';		// StringParm
+									$$->etype = 'S';		// StringParm
 									if (strlen($1) <= MAX_COLNAME_LENGTH)
 										strncpy($$->ltype.strParam, $1, strlen($1));
 									else
@@ -810,24 +810,24 @@ Literal:IntParam                {
 | BOOL                          {
 									emit("BOOL:%d",$1);
 									$$ = makeNode(LiteralType);
-									$$->type = 'B';		// BOOL
+									$$->etype = 'B';		// BOOL
 									$$->ltype.boolValue = $1;
 								}
 | NULLX                         {
 									$$ = makeNode(LiteralType);
-									$$->type = 'N';		// NULLX
+									$$->etype = 'N';		// NULLX
 									strncpy($$->ltype.ifNull,$1,4);
 								}
 | ApproxnumParam                {
 									emit("ApproxnumList");
 									$$ = makeNode(LiteralType);
-									$$->type = 'A';		// ApproxNumParam;
+									$$->etype = 'A';		// ApproxNumParam;
 									$$->ltype.approxNumParam = $1;
 								}
 | ColName                       {
 									emit("ColName");
 									$$ = makeNode(LiteralType);
-									$$->type = 'C';		// ColName
+									$$->etype = 'C';		// ColName
 									if (strlen($1) <= MAX_COLNAME_LENGTH)
 										strncpy($$->ltype.strParam, $1, strlen($1));
 									else

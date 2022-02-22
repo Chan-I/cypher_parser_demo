@@ -182,7 +182,8 @@ typedef struct IntStringAppro
 
 typedef struct LiteralType
 {
-  int type;         //   expression   type ...
+  NodeTag type;
+  int etype;         //   expression   type ...
   union{
     int intParam;      // IntParam
     char strParam[MAX_COLNAME_LENGTH];   //StringParam  && colname
@@ -194,6 +195,7 @@ typedef struct LiteralType
 
 typedef struct AnyExpr
 {
+  NodeTag type;
   LiteralType *ltrlType;
   struct ComparisionExpr_Stru *whExpr;
   struct WhereStmtClause *whcls;

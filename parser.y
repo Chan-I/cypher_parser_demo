@@ -158,6 +158,7 @@ sexps:
 										mod->wh = $2;
 									}																		
 									mod->rt = $3;
+								    return 0;    // ignore '\n' from stdin, directly exit yyparse; 
 								}
 ;
 /* Match Clause */

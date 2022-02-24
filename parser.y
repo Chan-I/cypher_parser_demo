@@ -897,7 +897,7 @@ StringParamNode:STRING              {
 										IntStringAppro *intstrapp = makeNode(IntStringAppro);
 										intstrapp->isa.strValue = malloc(strlen($1) * sizeof(char));
 										strcpy(intstrapp->isa.strValue, $1);
-										intstrapp->type = 'S';
+										intstrapp->union_type = 'S';
 										$$ = (Node *)intstrapp;
 										
 									}
@@ -906,7 +906,7 @@ StringParamNode:STRING              {
 IntParamNode:INTNUM                 {
 										IntStringAppro *intstrapp = makeNode(IntStringAppro);
 										intstrapp->isa.intValue = (int64_t) $1;
-										intstrapp->type = 'I';
+										intstrapp->union_type = 'I';
 										$$ = (Node *)intstrapp;
 									}
 ;
@@ -914,7 +914,7 @@ IntParamNode:INTNUM                 {
 ApproxnumParamNode:APPROXNUM        {
 										IntStringAppro *intstrapp = makeNode(IntStringAppro);
 										intstrapp->isa.approValue = $1;
-										intstrapp->type = 'A';
+										intstrapp->union_type = 'A';
 										$$ = (Node *)intstrapp;
 									}
 ;

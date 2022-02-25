@@ -962,7 +962,7 @@ ReturnClause:  RETURN DistinctOpt ReturnExprList OrderByClause LimitClause ';'
 					else	
 						$$->hasOrderBy = 0;
 
-					if (($$->limitNum = $5)<0)	/* limit num*/
+					if (($$->limitNum = $5,$5<=0))	/* limit num*/
 						$$->hasLimit = false;
 					else
 						$$->hasLimit = true;

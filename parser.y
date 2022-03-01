@@ -534,7 +534,16 @@ RelationshipTypePattern:                {
 										}
 | ':' RelTypeName RelTypeNamePattern    {	
 											_emit(": RelTypeName RelTypeNamePattern");
-											sprintf(colNameRelType,":%s %s",$2,$3);
+											if ($3 == NULL)
+											{
+												$$ = (char *)malloc(strlen($2));
+												sprintf(colNameRelType,"%s",$2);
+											}
+											else
+											{
+												$$ = (char *)malloc(strlen($2) + strlen($3));
+												sprintf(colNameRelType,":%s %s",$2,$3);
+											}
 											if (strlen(colNameRelType) <= MAX_COLNAME_LENGTH)
 												strncpy($$,colNameRelType,strlen(colNameRelType));
 											else

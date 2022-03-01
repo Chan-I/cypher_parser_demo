@@ -372,17 +372,7 @@ PropertiesPattern:              {
 								}
 | '{' MapLiteralClause '}'      {
 									_emit("MapLiteral");
-									$$ = makeNode(MapLiterals);
-									if ($2 == NULL)
-									{
-										$$ -> exmpltpt = false;
-										$$ = NULL;
-									}
-									else
-									{
-										$$ -> exmpltpt = true;
-										$$ = $2;
-									}
+									$$ = $2;
 								}
 ;
 
@@ -392,7 +382,17 @@ MapLiteralClause:               {
 								}
 | MapLiteralPattern             {
 									_emit("MapLiteralPattern");
-									$$ -> mapLitPattern = $1;
+									$$ = makeNode(MapLiterals);
+									if ($1 == NULL)
+									{
+										$$ -> exmpltpt = false;
+										$$ = NULL;
+									}
+									else
+									{
+										$$ -> exmpltpt = true;
+										$$ -> mapLitPattern = $1;
+									}
 								}
 ;
 

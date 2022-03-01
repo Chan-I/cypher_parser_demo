@@ -1,19 +1,40 @@
 #include "print.h"
 
+
+//------   other functions ----------
+bool
+HasChar(char *str, char c)
+{
+  int i, len;
+  bool haschar = false;
+
+  len = strlen(str);
+  for (i = 0;i < len;i++)
+  {
+    if (str[i] == c)
+    {
+      haschar = true;
+      break;
+    }
+  }
+  return haschar;
+}
+
+
+
+ //------   rerturn clause ----------
+
 void
-ReturnStmtPrint(ReturnStmtClause *rt, char *in)
+ReturnStmtPrint(ReturnStmtClause *rt, char *in, char *order)
 {
   OrderByStmtClause *odb = rt->odb;
-  char *str = in;
   if (rt->hasDistinct)
   {
-    sprintf(str,"SELECT DISTINCT ");
-    str  += 16;
+    strcat(in, "SELECT DISTINCT ");
   }
   else
   {
-	  sprintf(str,"SELECT ");
-    str += 7;
+	  strcat(in, "SELECT ");
   }
 
 	ListCell *retcolCell ; 
@@ -26,48 +47,54 @@ ReturnStmtPrint(ReturnStmtClause *rt, char *in)
     ReturnCols *retcol = (ReturnCols *) lfirst(retcolCell);
     if (retcol->hasFunc && retcol->hasDistinct)
     {
-      sprintf(str,"%s(DISTINCT %s) ",retcol -> funName, retcol -> colname);
-      str += strlen(retcol -> funName) + strlen(retcol -> colname) + 12;
+      strcat(in, retcol -> funName);
+      strcat(in, "(DISTINCT ");
+      strcat(in, retcol -> colname);
+      strcat(in, ") ");
     }
     else if(retcol->hasFunc && !retcol->hasDistinct)
     {
-      sprintf(str,"%s(%s) ",retcol -> funName, retcol -> colname);
-      str += strlen(retcol -> funName) + strlen(retcol -> colname) + 3;
+      strcat(in, retcol -> funName);
+      strcat(in, "(");
+      strcat(in, retcol -> colname);
+      strcat(in, ")");
     }
     else
     {
-      sprintf(str,"%s ", retcol -> colname);
-      str += strlen(retcol -> colname) + 1;
+      strcat(in, retcol -> colname);
+      strcat(in, " ");
     }
     
     if (retcol->hasAlias)
     {
-      sprintf(str,"AS %s ",retcol->colAlias);
-      str += strlen(retcol->colAlias) + 4;
+      strcat(in, "AS ");
+      strcat(in, retcol->colAlias);
+      strcat(in, " ");
     }
-    *str++ = ',';
+    strcat(in, ",");
   }		
-  *--str = 0;
+  in[strlen(in)-1] = '\0';
   if(rt->hasOrderBy) /*Order By ... DESC */
   {
+    strcat(order, " ORDER BY ");
+    strcat(order, odb->orderByColname);
     if (odb->ascDesc == 'A')
     {
-      sprintf(str,"\nORDER BY %s ASC ",odb->orderByColname);
-      str += strlen(odb->orderByColname) + 15;
+      strcat(order, " ASC ");
     }
     else if (odb->ascDesc == 'D')
     {
-      sprintf(str,"\nORDER BY %s DESC ",odb->orderByColname);
-      str += strlen(odb->orderByColname) + 16;
+      strcat(order, " DESC ");
     }
     else
     {
-      sprintf(str,"\nORDER BY %s ",odb->orderByColname);  
-      str += strlen(odb->orderByColname) + 11;
     }
   }
-  if(rt->hasLimit)
-    sprintf(str,"LIMIT %ld",rt->limitNum);
+  if (rt->hasLimit)
+  {
+    sprintf(order+strlen(order)," LIMIT %ld",rt->limitNum);
+  }
+    
 }
  
  //------   where clause ----------
@@ -115,7 +142,7 @@ PrintLT(LiteralType *lt, char *sql)
 void
 PrintAE(AnyExpr *ae, char *sql)
 {
-
+  printf("do not support any function\n");
 }
 
 void
@@ -130,7 +157,7 @@ PrintISAList(List *l, char *sql)
   foreach(ls, l)
   {
     IntStringAppro *isa = (IntStringAppro *)lfirst(ls);
-    switch(isa->union_type)
+    switch (isa->union_type)
     {
       case 'S':
 //        strcat(sql, "'");
@@ -165,7 +192,7 @@ PrintSCE(SubCompExpr *sce, char *sql)
   {
     strcat(sql, " IN ");
   }
-  else if(sce->partialType == 1)
+  else if (sce->partialType == 1)
   {
     switch (sce->compType)
     {
@@ -225,7 +252,6 @@ PrintCS(Comparision_Stru *cs, char *sql)
 void
 PrintCES(ComparisionExpr_Stru *ces, char *sql)
 {
-
   if(ces->branch)
   {
     switch(ces->exprType)
@@ -268,14 +294,157 @@ void
 WhereStmtPrint(WhereStmtClause *wh, char *sql)
 {
 //  strcpy(sql," \nWhere Clause test ");
+  strcat(sql, " WHERE ");
   PrintCES(wh->root,sql);
 
 }
 
 //-------- match clause  ----------
+
+void
+PrintNL(NodeLabel *nl, char *from, char *property)
+{
+  strcat(from, nl->labelName);
+}
+
+void
+PrintNP(NODEPattern *np, char *from, char *property)
+{
+  if (!np->ifnodeLab)
+  {
+    //elog
+  }
+  PrintNL(np->nodeLab, from, property);
+  if (!np->exmaplit)
+  {
+    printf("node label cannot be ignored\n");
+  }
+  else
+  {
+    PrintML(np->maplit, from, property, np->nodeLab->labelName);
+  }
+}
+
+void
+PrintML(MapLiterals *ml, char *from, char *property, char *labelname)
+{
+  ListCell *lc = NULL;
+  List *l = ml->mapLitPattern;
+  foreach(lc, l)
+  {
+    MapLiteralPattern *mlp = (MapLiteralPattern *)lfirst(lc);
+    strcat(property, " AND ");
+    strcat(property, labelname);
+    strcat(property, ".");
+    strcat(property, mlp->colName);
+    strcat(property, " = ");
+    PrintCES(mlp->whexpr, property);
+  }
+}
+
+void
+PrintRP(RelationShip *rp, char *from, char *property)
+{
+  if (!rp->hasRelshipTypePattern || rp->hasIntLitPattern 
+  || HasChar(rp->RelshipTypePattern, '|'))
+  {
+    printf("relationship label cannot be ignored\n");
+  }
+  strcat(from, rp->RelshipTypePattern);
+  strcat(from, " on id=src ");
+  if (rp->ifMapLiteral)
+  {  
+    PrintML(rp->maplit, from, property, rp->RelshipTypePattern);
+  }
+}
+
+void
+PrintRSP(RelationShipPattern *rsp, char *from, char *property)
+{
+  switch (rsp->reltype)
+  {
+  case 1:
+  //
+    break;
+  case 2:
+  //
+    break;    
+  case 3:
+    strcat(from, " join ");
+    PrintRP(rsp->relShip, from, property);
+    break;
+  case 4:
+  //
+    break;
+  case 5:
+  //
+    break;
+  case 6:
+  //
+    break;
+  case 7:
+  //
+    break;                  
+  default:
+    break;
+  }
+}
+
+void
+PrintPEC(PatternEleChain *pec, char *from, char *property)
+{
+  PrintRSP(pec->relshipPattern, from, property);
+}
+
+void
+PrintAP(AnnoyPattern *ap, char *from, char *property)
+{
+  strcat(from, " from ");
+  PrintNP(ap->ndPattern, from, property);
+  ListCell *lc = NULL;
+
+  if (ap->exptEleChain)
+  {
+    if (ap->ptnElementChain->length >1 )
+    {
+      printf("path is too long\n");
+    }
+    foreach(lc, ap->ptnElementChain)
+    {
+      PatternEleChain *pec = (PatternEleChain *)lfirst(lc);
+      PrintPEC(pec, from, property);
+    }
+  }
+}
+
+void
+PrintPList(List *l, char *from, char *property)
+{
+  int len;
+  ListCell *lc = NULL;
+
+  len = l->length;
+  if (len > 1)
+  {
+    //elog
+  }
+  foreach(lc, l)
+  {
+    PatternList *pl = (PatternList *)lfirst(lc);
+    PrintAP(pl->annoyPattern, from, property);
+  }
+}
+
+
 void 
 MatchStmtPrint(MatchStmtClause *mch, char *sql)
 {
-    // TODO .... 
-    strcpy(sql," \nMatch Clause test ");
+    char *from = (char *)malloc(8192);
+    char *property = (char *)malloc(8192);
+
+    PrintPList(mch->patternList, from, property); 
+    strcat(sql, property);
+    strcat(sql, from);
+    free(from);
+    free(property);
 }

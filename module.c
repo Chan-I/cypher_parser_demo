@@ -59,20 +59,21 @@ char *
 print_module(module *mod)
 {
   char *sql = malloc(8192 * 3);  // TODO : 8192 ???? 
-  char *head = sql;
   memset(sql,0,8192 * 3);
+  char *order = malloc(8192);
 
-  ReturnStmtPrint(mod->rt, head);     // print return clasue
-  head += strlen(sql);
+  ReturnStmtPrint(mod->rt, sql, order);     // print return clasue
+//  head += strlen(sql);
 
   if(mod->exWhereExpr)
   {
-    WhereStmtPrint(mod->wh, head);    // print where clause
-    head += strlen(head);
+    WhereStmtPrint(mod->wh, sql);    // print where clause
+//    head += strlen(head);
   }
   
-  MatchStmtPrint(mod->mch, head);     // print match clause
+  MatchStmtPrint(mod->mch, sql);     // print match clause
 
+  strcat(sql, order);
   return sql;
 }
 

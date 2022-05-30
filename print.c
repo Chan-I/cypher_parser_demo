@@ -448,3 +448,19 @@ MatchStmtPrint(MatchStmtClause *mch, char *sql)
     free(from);
     free(property);
 }
+
+void 
+CreateStmtPrint(CreateStmtClause *crt, char *sql)
+{
+    fprintf(stderr, "Does Not Support Create Stmt In This Version.");
+    exit(0);
+}
+
+void 
+DeleteStmtPrint(DeleteStmtClause *dlt, char *sql)
+{
+//  strcpy(sql," \nWhere Clause test ");
+  strcat(sql, " DELETE ");
+  PrintCES(dlt->root,sql);
+
+}

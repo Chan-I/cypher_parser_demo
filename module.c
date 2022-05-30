@@ -61,18 +61,32 @@ print_module(module *mod)
   char *sql = malloc(8192 * 3);  // TODO : 8192 ???? 
   memset(sql,0,8192 * 3);
   char *order = malloc(8192);
-
-  ReturnStmtPrint(mod->rt, sql, order);     // print return clasue
-//  head += strlen(sql);
-
-  if(mod->exWhereExpr)
+  switch (mod->cmdType)
   {
-    WhereStmtPrint(mod->wh, sql);    // print where clause
-//    head += strlen(head);
-  }
-  
-  MatchStmtPrint(mod->mch, sql);     // print match clause
+    case C_MatchReturn:
+      ReturnStmtPrint(mod->rt, sql, order);     // print return clasue
+      //  head += strlen(sql);
 
+      if(mod->exWhereExpr)
+      {
+        WhereStmtPrint(mod->wh, sql);    // print where clause
+      //    head += strlen(head);
+      }
+      
+      MatchStmtPrint(mod->mch, sql);     // print match clause
+      break;
+    
+    case C_Create:
+      CreateStmtPrint(mod->crt, sql);     // print return clasue
+      break;
+
+    case C_MatchDelete:
+      MatchStmtPrint(mod->mch, sql);     // print match clause
+      DeleteStmtPrint(mod->dlt, sql);
+
+      break;
+
+  }
   strcat(sql, order);
   return sql;
 }

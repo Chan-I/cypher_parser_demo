@@ -71,8 +71,18 @@ typedef enum NodeTag
     T_AnnoyPattern,
     T_PatternList,
     T_MatchStmtClause,
-    T_IntLiteralPattern
+    T_IntLiteralPattern,
+    T_CreateStmtClause,
+    T_DeleteStmtClause
 }NodeTag;
+
+typedef enum Cype
+{
+    C_MatchReturn,    // match ... [where ...] return ...
+    C_MatchDelete,    // match ... delete
+    C_Create          // Create ...
+}Cype;
+
 
 typedef struct Node
 {
@@ -363,4 +373,16 @@ typedef struct MatchStmtClause      // MatchClause
   List *patternList;              // Pattern
 } MatchStmtClause;
 
+
+typedef struct CreateStmtClause
+{
+  NodeTag type;
+  List *patternList;
+}CreateStmtClause;
+
+typedef struct DeleteStmtClause
+{
+  NodeTag type;
+  ComparisionExpr_Stru *root;
+} DeleteStmtClause;
 #endif // __AST_H

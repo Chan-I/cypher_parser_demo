@@ -11,6 +11,10 @@ void WhereStmtPrint(WhereStmtClause *wh, char *sql);
 
 void MatchStmtPrint(MatchStmtClause *mch, char *sql);
 
+void CreateStmtPrint(CreateStmtClause *mch, char *sql);
+
+void DeleteStmtPrint(DeleteStmtClause *dlt, char *sql);
+
 void PrintCES(ComparisionExpr_Stru *ces, char *sql);
 
 void PrintCS(Comparision_Stru *cs, char *sql);

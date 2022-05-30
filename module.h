@@ -5,12 +5,15 @@
 #include "delete.h"
 
 typedef struct {
-	FILE          *src;
+	FILE        *src;
+	Cype		cmdType;
 	ReturnStmtClause *rt;
 	bool exWhereExpr;             // whether exists Where expr??? 
 	WhereStmtClause	 *wh;
 	MatchStmtClause  *mch;
 
+	CreateStmtClause *crt;
+	DeleteStmtClause *dlt;
 } module;
 
 char *print_module(module *mod);

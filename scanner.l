@@ -19,8 +19,10 @@ int oldstate;
 AS          { return AS;         }
 ANY         { return ANY;        }
 ALL         { return ALL;        }
+CREATE      { return CREATE;     }
 MATCH       { return MATCH;      }
 RETURN      { return RETURN;     }
+DELETE      { return DELETE;     }
 DESC        { return DESC;       }
 ASC         { return ASC;        }
 DISTINCT    { return DISTINCT;   } 

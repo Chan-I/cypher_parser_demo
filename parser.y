@@ -53,6 +53,8 @@ char attrNum[MAX_COLNAME_LENGTH];
 	ReturnStmtClause	*rtstmtcls;	
 	SubCompExpr *subCompExpr;
 	WhereStmtClause 	*whstmtcls;
+	CreateStmtClause	*crtstmtcls;
+	DeleteStmtClause	*dltstmtcls;
 } /* Generate YYSTYPE from these types:  */
 
 %token <intval> INTNUM
@@ -78,8 +80,8 @@ char attrNum[MAX_COLNAME_LENGTH];
 
 %token <keyword> ALL AND ANY AS ASC 
 %token <keyword> BY 
-%token <keyword> CONTAINS COUNT 
-%token <keyword> DESC DISTINCT 
+%token <keyword> CONTAINS COUNT CREATE
+%token <keyword> DELETE DESC DISTINCT 
 %token <keyword> ENDS EOL EXISTS 
 %token <keyword> IN IS 
 %token <keyword> LIMIT 
@@ -96,6 +98,8 @@ char attrNum[MAX_COLNAME_LENGTH];
 %type <anyExpr> 	FilterExpression
 %type <cmpStru> 	Expression
 %type <cmpexprstru> WhereExpression
+%type <crtstmtcls>	CreateClause
+%type <dltstmtcls>	DeleteClause
 %type <floatval> 	ApproxnumParam 
 %type <intltpt> 	IntegerLiteralPattern
 %type <intval> 		AscDescOpt DistinctOpt LimitClause
@@ -157,12 +161,54 @@ sexps:
 										mod->exWhereExpr = true;
 										mod->wh = $2;
 									}																		
-									mod->rt = $3;
+									mod -> rt = $3;
+									mod -> crt = NULL;
+									mod -> dlt = NULL;
+									mod -> cmdType = C_MatchReturn;
 								    return 0;    // ignore '\n' from stdin, directly exit yyparse; 
 								}
+|	CreateClause
+				{
+					_emit("CreateClause");
+					mod -> mch = NULL;
+					mod -> exWhereExpr = false;
+					mod -> wh = NULL;
+					mod -> rt = NULL;
+					mod -> crt = $1;
+					mod -> dlt = NULL;
+					mod -> cmdType = C_Create;
+					return 0;
+				}
+|	MatchClause DeleteClause
+				{
+					_emit("DeleteClause");
+					mod -> mch = $1;
+					mod -> exWhereExpr = false;
+					mod -> wh = NULL;
+					mod -> rt = NULL;
+					mod -> crt = NULL;
+					mod -> dlt = $2;
+					mod -> cmdType = C_MatchDelete;
+				}
 ;
-/* Match Clause */
 
+CreateClause:	CREATE Pattern ';'
+								{
+									_emit("Create");
+									$$ = makeNode(CreateStmtClause);
+									$$ -> patternList = $2;
+								}
+;
+
+DeleteClause:	DELETE WhereExpression ';'
+								{
+									_emit("delete where");
+									$$ = makeNode(DeleteStmtClause);
+									$$ -> root = $2;  
+								}
+;
+
+/* Match Clause */
 MatchClause: MATCH Pattern      {
 									_emit("MatchClause");
 									$$ = makeNode(MatchStmtClause);

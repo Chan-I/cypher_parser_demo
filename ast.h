@@ -11,98 +11,112 @@
 
 #define MAX_COLNAME_LENGTH 128
 
-#define FREE(a) do { 	\
-	if (a) free(a);       \
-	a = NULL;		          \
-}while(0)
+#define FREE(a) \
+  do            \
+  {             \
+    if (a)      \
+      free(a);  \
+    a = NULL;   \
+  } while (0)
 
-#define FCLOSE(a) do { 	\
-	if (a) fclose(a);       \
-	a = NULL;		          \
-}while(0)
+#define FCLOSE(a) \
+  do              \
+  {               \
+    if (a)        \
+      fclose(a);  \
+    a = NULL;     \
+  } while (0)
 
-#define DELETE_RETURN_CLAUSE_NODE(a) do  { \
-  delete_return_clause_node(a); \
-  a = NULL; \
-}while(0)
+#define DELETE_RETURN_CLAUSE_NODE(a) \
+  do                                 \
+  {                                  \
+    delete_return_clause_node(a);    \
+    a = NULL;                        \
+  } while (0)
 
-#define DELETE_WHERE_CLAUSE_NODE(a) do {\
-  delete_where_clause_node(a);  \
-  a = NULL;   \
-}while(0)
+#define DELETE_WHERE_CLAUSE_NODE(a) \
+  do                                \
+  {                                 \
+    delete_where_clause_node(a);    \
+    a = NULL;                       \
+  } while (0)
 
-#define DELETE_MATCH_CLAUSE_NODE(a) do {\
-  delete_match_clause_node(a);  \
-  a = NULL;   \
-}while(0)
+#define DELETE_MATCH_CLAUSE_NODE(a) \
+  do                                \
+  {                                 \
+    delete_match_clause_node(a);    \
+    a = NULL;                       \
+  } while (0)
 
-#define ERROR(msg)  do {  \
-  yyerror(scanner,mod,msg);  \
-  return 1; \
-}while(0)
+#define ERROR(msg)              \
+  do                            \
+  {                             \
+    yyerror(scanner, mod, msg); \
+    return 1;                   \
+  } while (0)
 
 #ifdef __YYEMIT
-  #define _emit emit
+#define _emit emit
 #else
-  #define _emit
+#define _emit
 #endif
 
 typedef enum NodeTag
 {
-    T_Node,
-    T_List,
-    T_ReturnStmtClause,
-    T_ReturnCols,
-    T_OrderByStmtClause,
-    T_WhereStmtClause,
-    T_Comparision_Stru,
-    T_ComparisionExpr_Stru,
-    T_SubCompExpr,
-    T_IntStringAppro,
-    T_AnyExpr,
-    T_LiteralType,
-    T_NodeLabel,
-    T_NODEPattern,
-    T_MapLiteralPattern,
-    T_MapLiterals,
-    T_RelationShip,
-    T_RelationShipPattern,
-    T_PatternEleChain,
-    T_AnnoyPattern,
-    T_PatternList,
-    T_MatchStmtClause,
-    T_IntLiteralPattern,
-    T_CreateStmtClause,
-    T_DeleteStmtClause
-}NodeTag;
-
-typedef enum Cype
-{
-    C_MatchReturn,    // match ... [where ...] return ...
-    C_MatchDelete,    // match ... delete
-    C_Create          // Create ...
-}Cype;
-
+  T_Node,
+  T_List,
+  T_ReturnStmtClause,
+  T_ReturnCols,
+  T_OrderByStmtClause,
+  T_WhereStmtClause,
+  T_Comparision_Stru,
+  T_ComparisionExpr_Stru,
+  T_SubCompExpr,
+  T_IntStringAppro,
+  T_AnyExpr,
+  T_LiteralType,
+  T_NodeLabel,
+  T_NODEPattern,
+  T_MapLiteralPattern,
+  T_MapLiterals,
+  T_RelationShip,
+  T_RelationShipPattern,
+  T_PatternEleChain,
+  T_AnnoyPattern,
+  T_PatternList,
+  T_MatchStmtClause,
+  T_IntLiteralPattern,
+  T_CreateStmtClause,
+  T_DeleteStmtClause,
+  T_SgPtStmtClause,
+  T_SgStmtClause,
+  T_ReadingStmtClause,
+  T_UpdatingStmtClause,
+  T_MtPtStmtClause,
+  T_SingleUpdatingStmtClause,
+  T_RdStmtClause,
+  T_WithStmtClause,
+  T_MtPtStmtClauseLoop,
+  T_ReglQueryClause
+} NodeTag;
 
 typedef struct Node
 {
-    NodeTag type;
-}Node;
+  NodeTag type;
+} Node;
 
-#define newNode(size, tag) \
-({                      \
-     Node *_result;  \
-     assert((size) >= sizeof(Node));    /* 检测申请的内存大小，>>=sizeof(Node) */ \
-     _result = (Node *) malloc(size);   /* 申请内存 */ \
-     _result->type = (tag);             /*设置TypeTag */ \
-     _result;                   		/*返回值*/\
-})
-#define makeNode(_type_) ((_type_ *)newNode(sizeof(_type_),T_##_type_))
+#define newNode(size, tag)                                                              \
+  ({                                                                                    \
+    Node *_result;                                                                      \
+    assert((size) >= sizeof(Node)); /* 检测申请的内存大小，>>=sizeof(Node) */ \
+    _result = (Node *)malloc(size); /* 申请内存 */                                  \
+    _result->type = (tag);          /*设置TypeTag */                                  \
+    _result;                        /*返回值*/                                       \
+  })
+#define makeNode(_type_) ((_type_ *)newNode(sizeof(_type_), T_##_type_))
 #define nodeTag(nodeptr) (((const Node *)(nodeptr))->type)
-#define NodeSetTag(nodeptr,t)	(((Node*)(nodeptr))->type = (t))  
-#define IsA(nodeptr,_type_)		(nodeTag(nodeptr) == T_##_type_)  /* IsA(stmt,T_Stmt)*/
-
-
+#define NodeSetTag(nodeptr, t) (((Node *)(nodeptr))->type = (t))
+#define IsA(nodeptr, _type_) (nodeTag(nodeptr) == T_##_type_) /* IsA(stmt,T_Stmt)*/
 
 //------------------------------------------------------------------------------
 /* List Structor */
@@ -112,34 +126,35 @@ struct ListCell
 {
   union
   {
-    void    *ptr_value;   /* data */
-    int     int_value;
-  }       data;
-  ListCell    *next;  
+    void *ptr_value; /* data */
+    int int_value;
+  } data;
+  ListCell *next;
 };
 
 typedef struct List
 {
-  NodeTag   type;   /* T_List T_IntList .... */
-  int       length; /* length of this list */
-  ListCell  *head;
-  ListCell  *tail;
-}List;
+  NodeTag type; /* T_List T_IntList .... */
+  int length;   /* length of this list */
+  ListCell *head;
+  ListCell *tail;
+} List;
 
+#define NIL ((List *)NULL)
+#define lnext(lc) ((lc)->next)
+#define lfirst(lc) ((lc)->data.ptr_value)
 
+static inline ListCell *list_head(const List *l)
+{
+  return l ? l->head : NULL;
+}
+static inline ListCell *list_tail(List *l) { return l ? l->tail : NULL; }
+static inline int list_length(const List *l) { return l ? l->length : 0; }
 
-#define NIL						((List *) NULL)
-#define lnext(lc)				((lc)->next)
-#define lfirst(lc)				((lc)->data.ptr_value)
-
-static inline ListCell * list_head(const List *l){	return l ? l->head : NULL;}
-static inline ListCell * list_tail(List *l)	{	return l ? l->tail : NULL;}
-static inline int list_length(const List *l){	return l ? l->length : 0;}
-
-#define list_make1(x1)      lcons(x1, NIL)
-#define IsPointerList(l)    ((l) == NIL || IsA((l), List))
-#define foreach(cell, l)	\
-	for ((cell) = list_head(l); (cell) != NULL; (cell) = lnext(cell))
+#define list_make1(x1) lcons(x1, NIL)
+#define IsPointerList(l) ((l) == NIL || IsA((l), List))
+#define foreach(cell, l) \
+  for ((cell) = list_head(l); (cell) != NULL; (cell) = lnext(cell))
 
 List *lappend(List *list, void *datum);
 List *lcons(void *datum, List *list);
@@ -148,23 +163,21 @@ static void check_list_invariants(const List *list);
 static void new_head_cell(List *list);
 static void new_tail_cell(List *list);
 void list_free(List *list);
-
-
-
-
+void emit(char *s, ...);
 //---------------------------------Return Clause------------------------------------
 
-
-typedef struct OrderByStmtClause{
-  int ascDesc ;               /* asc or desc */
-  char orderByColname[MAX_COLNAME_LENGTH]; /* order by ID ...*/ 
+typedef struct OrderByStmtClause
+{
+  int ascDesc;                             /* asc or desc */
+  char orderByColname[MAX_COLNAME_LENGTH]; /* order by ID ...*/
 } OrderByStmtClause;
 
-typedef struct ReturnCols{
+typedef struct ReturnCols
+{
   NodeTag type;
 
-  bool hasAlias ;
-  bool hasFunc ;
+  bool hasAlias;
+  bool hasFunc;
   bool hasDistinct;
   char colname[MAX_COLNAME_LENGTH];
   char funName[MAX_COLNAME_LENGTH];
@@ -172,12 +185,13 @@ typedef struct ReturnCols{
 
 } ReturnCols;
 
-typedef struct ReturnStmtClause{
+typedef struct ReturnStmtClause
+{
   NodeTag type;
-  bool hasOrderBy ;
-  bool hasDistinct ;
-  bool hasLimit ;
-  uint64_t limitNum ;      /* limit 4*/
+  bool hasOrderBy;
+  bool hasDistinct;
+  bool hasLimit;
+  uint64_t limitNum; /* limit 4*/
   OrderByStmtClause *odb;
   List *returnCols;
 
@@ -192,21 +206,22 @@ typedef struct IntStringAppro
   {
     int64_t intValue;
     double approValue;
-    char * strValue;
+    char *strValue;
   } isa;
-}IntStringAppro;
+} IntStringAppro;
 
 typedef struct LiteralType
 {
   NodeTag type;
-  int etype;         //   expression   type ...
-  union{
-    int intParam;      // IntParam
-    char strParam[MAX_COLNAME_LENGTH];   //StringParam  && colname
-    bool boolValue;    //BOOL
-    char ifNull[4];        //NULLX
-    double approxNumParam;  //appronum
-  }ltype;
+  int etype; //   expression   type ...
+  union
+  {
+    int intParam;                      // IntParam
+    char strParam[MAX_COLNAME_LENGTH]; // StringParam  && colname
+    bool boolValue;                    // BOOL
+    char ifNull[4];                    // NULLX
+    double approxNumParam;             // appronum
+  } ltype;
 } LiteralType;
 
 typedef struct AnyExpr
@@ -215,53 +230,53 @@ typedef struct AnyExpr
   LiteralType *ltrlType;
   struct ComparisionExpr_Stru *whExpr;
   struct WhereStmtClause *whcls;
-}AnyExpr;
+} AnyExpr;
 
-typedef struct Comparision_Stru{  // Expression
+typedef struct Comparision_Stru
+{ // Expression
   NodeTag type;
-  int exprType;              // Literal  or   Any()   or   func()   or  IN ...
+  int exprType; // Literal  or   Any()   or   func()   or  IN ...
   LiteralType *ltrlType;
-  char * funcOpts;
-  
+  char *funcOpts;
+
   AnyExpr *anyExpr;
 
-  List *inExpr;             //  in [  a,  b, c, d ....]
+  List *inExpr; //  in [  a,  b, c, d ....]
 } Comparision_Stru;
 
-typedef struct SubCompExpr   // for PartialComparisonExpression
+typedef struct SubCompExpr // for PartialComparisonExpression
 {
   NodeTag type;
-  int partialType;            /* 
-                                 "IN" ----------- 0
-                                ">= ,<=" -------- 1
-                               */
+  int partialType; /*
+                      "IN" ----------- 0
+                     ">= ,<=" -------- 1
+                    */
 
-  int compType;             // >  >>  >= < ..... 
-  Comparision_Stru *subComprisionExpr;  //Expression
+  int compType;                        // >  >>  >= < .....
+  Comparision_Stru *subComprisionExpr; // Expression
 } SubCompExpr;
 
 typedef struct ComparisionExpr_Stru
 {
-  NodeTag type;                     /* type ----   for malloc */
-  int exprType;                     /* AND  OR   XOR   NOT   ->   type*/
+  NodeTag type; /* type ----   for malloc */
+  int exprType; /* AND  OR   XOR   NOT   ->   type*/
 
-  Comparision_Stru *comp;                       /* TO DO .....  Expression   */
+  Comparision_Stru *comp; /* TO DO .....  Expression   */
 
-  bool exPartialComExpr;          // whether exists PartialComparisionExpress
-  SubCompExpr *subComp;              // pointer to subComp
+  bool exPartialComExpr; // whether exists PartialComparisionExpress
+  SubCompExpr *subComp;  // pointer to subComp
 
-  bool branch;                      /* branch or not (void * is NULL)*/
-  struct ComparisionExpr_Stru * lchild;
-  struct ComparisionExpr_Stru * rchild;
-  struct ComparisionExpr_Stru * nchild;
+  bool branch; /* branch or not (void * is NULL)*/
+  struct ComparisionExpr_Stru *lchild;
+  struct ComparisionExpr_Stru *rchild;
+  struct ComparisionExpr_Stru *nchild;
 } ComparisionExpr_Stru;
 
-typedef struct WhereStmtClause  
+typedef struct WhereStmtClause
 {
   NodeTag type;
-  ComparisionExpr_Stru *root;   // root of tree
+  ComparisionExpr_Stru *root; // root of tree
 } WhereStmtClause;
-
 
 //----------------------------------Match Clause---------------------------------------
 
@@ -270,7 +285,7 @@ typedef struct NodeLabel
   NodeTag type;
   bool exlabelName;
   char labelName[MAX_COLNAME_LENGTH];
-  
+
   bool exlabelNames;
   char labelNames[MAX_COLNAME_LENGTH];
 } NodeLabel;
@@ -289,14 +304,14 @@ typedef struct NODEPattern
 
 } NODEPattern;
 
-typedef struct MapLiteralPattern      // MapLiteralPatternPart
+typedef struct MapLiteralPattern // MapLiteralPatternPart
 {
   NodeTag type;
   char colName[MAX_COLNAME_LENGTH];
   struct ComparisionExpr_Stru *whexpr;
 } MapLiteralPattern;
 
-typedef struct MapLiterals          //MapLiteralClause
+typedef struct MapLiterals // MapLiteralClause
 {
   NodeTag type;
   bool exmpltpt;
@@ -307,21 +322,21 @@ typedef struct IntLiteralPattern
 {
   NodeTag type;
   bool exintLit;
-  int intLit;                       //       [* 3 .. 4 ]
+  int intLit; //       [* 3 .. 4 ]
   bool exintLitColon;
-  int intLitColon;                  //       [* 3 .. 4 ]
+  int intLitColon; //       [* 3 .. 4 ]
 } IntLiteralPattern;
 
-typedef struct RelationShip         //RelationshipDetail
+typedef struct RelationShip // RelationshipDetail
 {
   NodeTag type;
-  bool hasbracket;                  //  id exists  [ 
-  
+  bool hasbracket; //  id exists  [
+
   bool hasPatternVal;
   char patternVal[MAX_COLNAME_LENGTH];
-  
+
   bool hasRelshipTypePattern;
-  char * RelshipTypePattern;
+  char *RelshipTypePattern;
 
   bool hasIntLitPattern;
   IntLiteralPattern *intLitPat;
@@ -335,7 +350,7 @@ typedef struct RelationShip         //RelationshipDetail
 typedef struct RelationShipPattern
 {
   NodeTag type;
-  int reltype;                     // <- ->   <- -    -->  ....  
+  int reltype; // <- ->   <- -    -->  ....
   RelationShip *relShip;
 } RelationShipPattern;
 
@@ -347,7 +362,7 @@ typedef struct PatternEleChain
 
 } PatternEleChain;
 
-typedef struct AnnoyPattern        // AnonymousPatternPart PatternElement
+typedef struct AnnoyPattern // AnonymousPatternPart PatternElement
 {
   NodeTag type;
   bool ifName;
@@ -358,7 +373,7 @@ typedef struct AnnoyPattern        // AnonymousPatternPart PatternElement
   List *ptnElementChain;
 } AnnoyPattern;
 
-typedef struct PatternList          // 
+typedef struct PatternList //
 {
   NodeTag type;
   bool onlyAnnoyPtnPart;
@@ -367,22 +382,104 @@ typedef struct PatternList          //
   AnnoyPattern *annoyPattern;
 } PatternList;
 
-typedef struct MatchStmtClause      // MatchClause
+typedef struct MatchStmtClause // MatchClause
 {
   NodeTag type;
-  List *patternList;              // Pattern
+  List *patternList; // Pattern
 } MatchStmtClause;
-
 
 typedef struct CreateStmtClause
 {
   NodeTag type;
   List *patternList;
-}CreateStmtClause;
+} CreateStmtClause;
 
 typedef struct DeleteStmtClause
 {
   NodeTag type;
   ComparisionExpr_Stru *root;
 } DeleteStmtClause;
+
+typedef struct UpdatingStmtClause /* UpdatingClause */
+{
+  NodeTag type;
+  CreateStmtClause *crt;
+  DeleteStmtClause *dlt;
+} UpdatingStmtClause;
+typedef struct SingleUpdatingStmtClause
+{
+  NodeTag type;
+  int branch; /*
+               *  ReturnClause                      0
+               *  UpdatingClause                    1
+               *  UpdatingClause + ReturnClause     2
+               */
+  UpdatingStmtClause *upd;
+  ReturnStmtClause *rt;
+} SingleUpdatingStmtClause;
+
+typedef struct ReadingStmtClause
+{
+  NodeTag type;
+  MatchStmtClause *mch;
+  WhereStmtClause *wh;
+} ReadingStmtClause;
+
+typedef struct RdStmtClause
+{
+  NodeTag type;
+  bool ifnull;
+  ReadingStmtClause *rdstcls;
+} RdStmtClause;
+
+typedef struct SgPtStmtClause
+{
+  NodeTag type;
+  bool ifrd;
+  RdStmtClause *rdst;
+  SingleUpdatingStmtClause *sgupd;
+} SgPtStmtClause;
+
+typedef struct WithStmtClause
+{
+  NodeTag type;
+  bool hasOrderBy;
+  bool hasDistinct;
+  bool hasLimit;
+  uint64_t limitNum; /* limit 4*/
+  OrderByStmtClause *odb;
+  List *returnCols;
+  bool ifwh;
+  WhereStmtClause *wh;
+} WithStmtClause;
+
+typedef struct MtPtStmtClause
+{
+  NodeTag type;
+  bool ifrd;
+  RdStmtClause *rd;
+  UpdatingStmtClause *upd;
+  WithStmtClause *wth;
+} MtPtStmtClause;
+
+typedef struct MtPtStmtClauseLoop
+{
+  NodeTag type;
+  List *mtqrlp;
+  SgPtStmtClause *sg;
+} MtPtStmtClauseLoop;
+
+typedef struct SgStmtClause
+{
+  NodeTag type;
+  SgPtStmtClause *sg;
+  MtPtStmtClauseLoop *mt;
+} SgStmtClause;
+
+typedef struct ReglQueryClause
+{
+  NodeTag type;
+  List *rgl; /* SgStmtClause */
+} ReglQueryClause;
+
 #endif // __AST_H

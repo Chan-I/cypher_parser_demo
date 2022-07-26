@@ -33,7 +33,7 @@ MERGE       { return MERGE;      }
 ON          { return ON;         }
 WHERE       { return WHERE;      }
 WITH        { return WITH;       }
-UNIONS      { return UNIONS;     }
+UNION       { return UNION;      }
 AND         { return AND;        }
 ENDS        { return ENDS;       }
 IN          { return IN;         }

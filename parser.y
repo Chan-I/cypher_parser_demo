@@ -25,36 +25,47 @@ char attrNum[MAX_COLNAME_LENGTH];
 }
 %union 
 {
-	char *keyword;		/* type for keywords*/
-    int intval;
-	int64_t lintval;
-    double floatval;
-    char *strval;
-    int subtok;
-	AnnoyPattern *annoyptn;
-	AnyExpr *anyExpr;
-	ComparisionExpr_Stru *cmpexprstru;
-	Comparision_Stru *cmpStru;
-	IntLiteralPattern *intltpt;
-	IntStringAppro *intStrApp;
-	List 	*list;
-	LiteralType *ltrlType;
-	MapLiterals *maplit;
-	MatchStmtClause *mchstmtcls;
-	NODEPattern *nodeptn;
-	Node	*node;
-	NodeLabel *nodelbl;
-	OrderByStmtClause *odb;
-	PatternEleChain *ptnEleChn;
-	PatternList *ptnlist;
-	RelationShip *relship;
-	RelationShipPattern *relshipptn;
-	ReturnCols	*rtcols;
-	ReturnStmtClause	*rtstmtcls;	
-	SubCompExpr *subCompExpr;
-	WhereStmtClause 	*whstmtcls;
-	CreateStmtClause	*crtstmtcls;
-	DeleteStmtClause	*dltstmtcls;
+	/* type for keywords*/
+	char 					 *keyword;
+    int 					 intval;
+	int64_t 				 lintval;
+    double 					 floatval;
+    char 					 *strval;
+    int 					 subtok;
+	AnnoyPattern 			 *annoyptn;
+	AnyExpr 				 *anyExpr;
+	ComparisionExpr_Stru 	 *cmpexprstru;
+	Comparision_Stru 		 *cmpStru;
+	IntLiteralPattern 		 *intltpt;
+	IntStringAppro 			 *intStrApp;
+	List 					 *list;
+	LiteralType 			 *ltrlType;
+	MapLiterals 			 *maplit;
+	MatchStmtClause 		 *mchstmtcls;
+	NODEPattern 			 *nodeptn;
+	Node					 *node;
+	NodeLabel 			 	 *nodelbl;
+	OrderByStmtClause 		 *odb;
+	PatternEleChain 		 *ptnEleChn;
+	PatternList 			 *ptnlist;
+	RelationShip 			 *relship;
+	RelationShipPattern 	 *relshipptn;
+	ReturnCols				 *rtcols;
+	ReturnStmtClause		 *rtstmtcls;	
+	SubCompExpr 			 *subCompExpr;
+	WhereStmtClause 		 *whstmtcls;
+	CreateStmtClause		 *crtstmtcls;
+	DeleteStmtClause		 *dltstmtcls;
+	SgPtStmtClause			 *sgptstmtcls;
+	SgStmtClause        	 *sgstmtcls;
+	MtPtStmtClause      	 *mtptstmtcls;
+	ReadingStmtClause		 *rdstmtcls;
+	UpdatingStmtClause		 *updstmtcls;
+	SingleUpdatingStmtClause *sgupdstmtcls;
+	RdStmtClause			 *rdstcls;
+	WithStmtClause			 *wstmtcls;
+	MtPtStmtClauseLoop		 *mtptstmtclslp;
+	ReglQueryClause			 *rglqrcls;
 } /* Generate YYSTYPE from these types:  */
 
 %token <intval> INTNUM
@@ -78,6 +89,7 @@ char attrNum[MAX_COLNAME_LENGTH];
 %left '(' ')'
 %left '.'
 
+
 %token <keyword> ALL AND ANY AS ASC 
 %token <keyword> BY 
 %token <keyword> CONTAINS COUNT CREATE
@@ -89,110 +101,301 @@ char attrNum[MAX_COLNAME_LENGTH];
 %token <keyword> NOT NULLX 
 %token <keyword> ON OR ORDER 
 %token <keyword> RETURN 
-%token <keyword> UNIONS 
+%token <keyword> UNION 
 %token <keyword> WHERE WITH 
 %token <keyword> XOR 
 
 
-%type <annoyptn> 	AnonymousPatternPart PatternElement 
-%type <anyExpr> 	FilterExpression
-%type <cmpStru> 	Expression
-%type <cmpexprstru> WhereExpression
-%type <crtstmtcls>	CreateClause
-%type <dltstmtcls>	DeleteClause
-%type <floatval> 	ApproxnumParam 
-%type <intltpt> 	IntegerLiteralPattern
-%type <intval> 		AscDescOpt DistinctOpt LimitClause
-%type <lintval> 	IntegerLiteral IntParam
-%type <list> 		ApproxnumList 
-			 		INExpression IntList 
-			 		MapLiteralPattern 
-			 		Pattern PatternElementChainClause PatternElementChains 
-			 		ReturnExprList 
-			 		StringList 
-%type <ltrlType> 	Literal
-%type <maplit> 		PropertiesPattern MapLiteralClause
-%type <mod> 		sexps
-%type <mchstmtcls> 	MatchClause
-%type <node> 		ApproxnumParamNode 
-			 		IntParamNode 
-					MapLiteralPatternPart 
-			 		PatternElementChain PatternPart 
-			 		ReturnExpr 
-			 		StringParamNode 
-%type <nodelbl> 	NodeLabelsPattern
-%type <nodeptn> 	NodePattern
-%type <odb> 		OrderByClause
-%type <relship> 	RelationshipDetail
-%type <relshipptn> 	RelationshipPattern
-%type <rtstmtcls> 	ReturnClause 
-%type <strval>  	ColName
-					FuncOpt 
-					IntegerLiteralColonPatternPart IntegerLiteralPatternPart
-					NodeLabel NodeLabels NumberLiteral 
-					OptAsAlias 
-					PropertyKey 
-					RelTypeName RelTypeNamePattern RelationshipTypePattern 
-					StringParam
-					Variable_Pattern 
-%type <subCompExpr> PartialComparisonExpression
-%type <whstmtcls> 	WhereClause
+%type <annoyptn> 		AnonymousPatternPart PatternElement 
+%type <anyExpr> 		FilterExpression
+%type <cmpStru> 		Expression
+%type <cmpexprstru> 	WhereExpression
+%type <crtstmtcls>		CreateClause
+%type <dltstmtcls>		DeleteClause
+%type <floatval> 		ApproxnumParam 
+%type <intltpt> 		IntegerLiteralPattern
+%type <intval> 			AscDescOpt DistinctOpt LimitClause
+%type <lintval> 		IntegerLiteral IntParam
+%type <list> 			ApproxnumList 
+			 			INExpression IntList 
+			 			MapLiteralPattern MultiPartQueryLoopClause
+			 			Pattern PatternElementChainClause PatternElementChains 
+			 			RegularQuery ReturnExprList
+			 			StringList
+%type <ltrlType> 		Literal
+%type <maplit> 			PropertiesPattern MapLiteralClause
+%type <mod> 			sexps
+%type <mchstmtcls> 		MatchClause
+%type <mtptstmtclslp> 	MultiPartQuery
+%type <node> 			ApproxnumParamNode 
+			 			IntParamNode 
+						MapLiteralPatternPart MultiPartQueryClause
+			 			PatternElementChain PatternPart 
+			 			ReturnExpr 
+			 			SingleQuery StringParamNode
+%type <nodelbl> 		NodeLabelsPattern
+%type <nodeptn> 		NodePattern
+%type <odb> 			OrderByClause
+%type <relship> 		RelationshipDetail
+%type <relshipptn> 		RelationshipPattern
+%type <rglqrcls>		Cypher
+%type <rtstmtcls> 		ReturnClause
+%type <sgptstmtcls> 	SinglePartQuery
+%type <sgupdstmtcls> 	SgUpdStmtClause
+%type <strval>  		ColName
+						FuncOpt 
+						IntegerLiteralColonPatternPart IntegerLiteralPatternPart
+						NodeLabel NodeLabels NumberLiteral 
+						OptAsAlias 
+						PropertyKey 
+						RelTypeName RelTypeNamePattern RelationshipTypePattern 
+						StringParam
+						Variable_Pattern 
+%type <subCompExpr> 	PartialComparisonExpression
+%type <rdstcls>			RdStmtClause
+%type <rdstmtcls>		ReadingClause
+%type <updstmtcls>		UpdatingClause
+%type <whstmtcls> 		WhereClause
+%type <wstmtcls>		WithClause
 
 
 
 
 
 %%
-%start sexps;
 
 
 
-sexps:
-	MatchClause WhereClause ReturnClause	
-								{
-									mod -> mch = $1;
-									if ($2 == NULL)
-									{
-										mod->exWhereExpr = false;
-										mod->wh = NULL;
-									}
-									else
-									{
-										mod->exWhereExpr = true;
-										mod->wh = $2;
-									}																		
-									mod -> rt = $3;
-									mod -> crt = NULL;
-									mod -> dlt = NULL;
-									mod -> cmdType = C_MatchReturn;
-								    return 0;    // ignore '\n' from stdin, directly exit yyparse; 
-								}
-|	CreateClause
-				{
-					_emit("CreateClause");
-					mod -> mch = NULL;
-					mod -> exWhereExpr = false;
-					mod -> wh = NULL;
-					mod -> rt = NULL;
-					mod -> crt = $1;
-					mod -> dlt = NULL;
-					mod -> cmdType = C_Create;
-					return 0;
-				}
-|	MatchClause DeleteClause
-				{
-					_emit("DeleteClause");
-					mod -> mch = $1;
-					mod -> exWhereExpr = false;
-					mod -> wh = NULL;
-					mod -> rt = NULL;
-					mod -> crt = NULL;
-					mod -> dlt = $2;
-					mod -> cmdType = C_MatchDelete;
-				}
+%start sexps;   /* mod */
+
+sexps:Cypher ';'			{
+								_emit("Module List :RegularQuery");
+								mod -> regl = $1;
+								return 0;
+							}
 ;
 
-CreateClause:	CREATE Pattern ';'
+Cypher:RegularQuery			/* ReglQueryClause */
+							{
+								_emit("Cypher:RegularQuery");
+								$$ = makeNode(ReglQueryClause);
+								$$ -> rgl = $1;
+							}
+;
+
+RegularQuery:SingleQuery 			/* List */
+									{
+										_emit("RegularQuery:    ");
+										$$ = list_make1($1);
+									}
+| RegularQuery UNION SingleQuery 	{
+										_emit("RegularQuery:   UNION  ");
+										$$ = lappend($1, $3);
+									}
+| RegularQuery UNION ALL SingleQuery 	{
+										_emit("RegularQuery:   UNION  ");
+										$$ = lappend($1, $4);
+									}
+;
+
+SingleQuery:SinglePartQuery		/* Node -- SgStmtClause */
+								{
+									_emit("SingleQuery: SingleQuery -- ");
+									SgStmtClause *sgstcls;
+									sgstcls = makeNode(SgStmtClause);
+									sgstcls -> sg = $1;
+									sgstcls -> mt = NULL;
+									$$ = (Node *)sgstcls;
+								}
+| MultiPartQuery				{
+									_emit("SingleQuery: MultiPartQuery");
+									SgStmtClause *sgstcls;
+									sgstcls = makeNode(SgStmtClause);
+									sgstcls -> sg = NULL;
+									sgstcls -> mt = $1;
+									$$ = (Node *)sgstcls;
+								}
+;
+
+MultiPartQuery:	/* MtPtStmtClauseLoop */
+	MultiPartQueryLoopClause SinglePartQuery	
+									{
+										_emit("MultiPartQuery:MultiPartQueryLoopClause SinglePartQuery");
+										$$ = makeNode(MtPtStmtClauseLoop);
+										$$ -> mtqrlp = $1;
+										$$ -> sg = $2;
+									}
+;
+
+MultiPartQueryLoopClause:	MultiPartQueryClause /* List */
+									{
+										_emit("MultiPartQueryLoopClause:	MultiPartQueryClause");
+										$$ = list_make1($1);
+									}
+|	MultiPartQueryLoopClause MultiPartQueryClause
+									{
+										_emit("MultiPartQueryLoopClause: MultiPartQueryLoopClause MultiPartQueryClause");
+										$$ = lappend($1, $2);
+									}
+;
+
+MultiPartQueryClause:	/* Node -- MtPtStmtClause */
+	RdStmtClause UpdatingClause WithClause	
+									{
+										_emit("MultiPartQueryClause: RdStmtClause UpdatingClause WithClause");
+										MtPtStmtClause *mpsc;
+										mpsc = makeNode(MtPtStmtClause);
+										if ((mpsc -> rd = $1) != NULL)
+											mpsc -> ifrd = 1;
+										else
+											mpsc -> ifrd = 0;
+										mpsc -> upd = $2;
+										mpsc -> wth = $3;
+										$$ = (Node *)mpsc;
+									}
+|	RdStmtClause WithClause
+									{
+										_emit("MultiPartQueryClause: RdStmtClause WithClause");
+										MtPtStmtClause *mpsc;
+										mpsc = makeNode(MtPtStmtClause);
+										if ((mpsc -> rd = $1) != NULL)
+											mpsc -> ifrd = 1;
+										else
+											mpsc -> ifrd = 0;
+										mpsc -> upd = NULL;
+										mpsc -> wth = $2;
+										$$ = (Node *)mpsc;
+									}
+
+;
+
+WithClause:	/* WithStmtClause */
+	WITH DistinctOpt ReturnExprList OrderByClause LimitClause WhereClause
+									{
+										_emit("WithClause");
+										$$ = makeNode(WithStmtClause);
+										
+										$$->hasDistinct = $2;   /* distinct */
+
+										$$->returnCols = $3;
+											
+										if(($$->odb=$4) != NULL)	/* order by*/
+											$$->hasOrderBy = 1;
+										else	
+											$$->hasOrderBy = 0;
+
+										if (($$->limitNum = $5,$5<=0))	/* limit num*/
+											$$->hasLimit = false;
+										else
+											$$->hasLimit = true;
+
+										if(($$ -> wh = $6) != NULL)
+											$$ -> ifwh = 0;
+										else	
+											$$ -> ifwh = 1;
+									}
+;
+
+SinglePartQuery:  /* SgPtStmtClause */
+	RdStmtClause SgUpdStmtClause
+							{
+								_emit("SinglePartQuery: RdStmtClause UpdStmtClause");
+								$$ = makeNode(SgPtStmtClause);
+								if (($$ -> rdst = $1) != NULL)
+										$$ -> ifrd = 1;
+								else
+										$$ -> ifrd = 0;
+								$$ -> sgupd = $2;
+							}
+;
+
+RdStmtClause:ReadingClause  /* RdStmtClause */
+							{
+								_emit("RdStmtClause:");
+								$$ = makeNode(RdStmtClause);
+								$$ -> ifnull  = 0;
+								$$ -> rdstcls = $1;
+							}
+|
+							{
+								_emit("RdStmtClause: is NULL");
+								$$ = NULL;
+							}
+;
+
+
+
+/* SingleUpdatingStmtClause */
+SgUpdStmtClause:ReturnClause
+							{
+								_emit("UpdStmtClause : ReturnClause");
+								$$ = makeNode(SingleUpdatingStmtClause);
+								$$ -> branch = 0;
+								$$ -> upd = NULL;
+								$$ -> rt = $1;
+							}
+|	UpdatingClause 
+							{
+								_emit("UpdStmtClause: UpdatingClause");
+								$$ = makeNode(SingleUpdatingStmtClause);
+								$$ -> branch = 1;
+								$$ -> upd = $1;
+								$$ -> rt = NULL;
+							}
+|	UpdatingClause ReturnClause
+							{
+								_emit("UpdStmtClause: UpdatingClause + ReturnClause");
+								$$ = makeNode(SingleUpdatingStmtClause);
+								$$ -> branch = 2;
+								$$ -> upd = $1;
+								$$ -> rt = $2;
+							}
+;
+
+ReadingClause:    /* ReadingStmtClause */
+	MatchClause WhereClause
+							{
+								_emit("ReadingClause MatchClause WhereClause");
+								$$ = makeNode(ReadingStmtClause);
+								$$ -> mch = $1;
+								$$ -> wh = $2;
+							}
+	/* To Do: .... */
+;
+
+
+
+
+/* 
+ * typedef struct UpdatingStmtClause
+ *	{
+ *		NodeTag type;
+ *		CreateStmtClause *crt;
+ *		DeleteStmtClause *dlt;
+ *	} UpdatingStmtClause;
+ */
+UpdatingClause:CreateClause	 /* UpdatingStmtClause */
+							{
+								_emit("UpdatingClause CreateClause");
+								$$ = makeNode(UpdatingStmtClause);
+								$$ -> crt = $1;
+								$$ -> dlt = NULL;
+							}
+| DeleteClause
+							{
+								_emit("UpdatingClause DeleteClause");
+								$$ = makeNode(UpdatingStmtClause);
+								$$ -> crt = NULL;
+								$$ -> dlt = $1;
+							}
+	/* ToDO: ...... */
+;
+
+
+
+/****************************************************************************/
+
+CreateClause:	CREATE Pattern
 								{
 									_emit("Create");
 									$$ = makeNode(CreateStmtClause);
@@ -200,7 +403,7 @@ CreateClause:	CREATE Pattern ';'
 								}
 ;
 
-DeleteClause:	DELETE WhereExpression ';'
+DeleteClause:	DELETE WhereExpression
 								{
 									_emit("delete where");
 									$$ = makeNode(DeleteStmtClause);
@@ -1004,7 +1207,7 @@ ApproxnumList:ApproxnumParamNode        {
 										}
 ;
 
-ReturnClause:  RETURN DistinctOpt ReturnExprList OrderByClause LimitClause ';'
+ReturnClause:  RETURN DistinctOpt ReturnExprList OrderByClause LimitClause
 				{
 					$$ = makeNode(ReturnStmtClause); /* malloc space for rt*/ 
 
@@ -1102,6 +1305,25 @@ ReturnExpr:ColName OptAsAlias
 									ERROR("colName is too long!");
 								$$ = (Node *)cols;
 							}
+|	COUNT '(' '*' ')' OptAsAlias
+							{
+								ReturnCols *cols = makeNode(ReturnCols);
+			
+								if($5 != NULL)
+								{
+									if (strlen($5) <= MAX_COLNAME_LENGTH)
+										strncpy(cols->colAlias,$5,MAX_COLNAME_LENGTH);
+									else
+										ERROR("colName is too long!");
+									cols->hasAlias = 1;
+								} else
+									cols->hasAlias = 0;
+
+								strcpy(cols->funName,"COUNT"); // ?????
+								cols->hasFunc = 1;
+								strncpy(cols->colname,"*",1);
+								$$ = (Node *)cols;
+							}
 | NumberLiteral OptAsAlias          
 							{
 								ReturnCols *cols = makeNode(ReturnCols);
@@ -1122,6 +1344,17 @@ ReturnExpr:ColName OptAsAlias
 									cols->hasAlias = 1;
 								} else
 									cols->hasAlias = 0;
+								$$ = (Node *)cols;
+							}
+|	'*'
+							{
+								ReturnCols *cols = makeNode(ReturnCols);
+								
+								cols->hasFunc = 0;
+								cols->hasDistinct = 0;
+								
+								strncpy(cols->colname, "*", 1);
+								
 								$$ = (Node *)cols;
 							}
 ; /* [ ... as b] OR  [...]*/

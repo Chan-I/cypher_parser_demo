@@ -38,12 +38,7 @@ int parse_module(module *mod)
   yydebug = 1;
 #endif
 
-  fprintf(stdout, "\n=========== before parser module ===========\n");
-
   res = yyparse(sc, mod);
-
-  fprintf(stdout, "\n=========== after parser module ===========\n");
-
   return res;
 }
 

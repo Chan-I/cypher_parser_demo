@@ -71,7 +71,9 @@ typedef enum NodeTag
   T_Comparision_Stru,
   T_CreateStmtClause,
   T_DeleteStmtClause,
+  T_ExpPrInvocation,
   T_IntLiteralPattern,
+  T_InQueryCallStmtClause,
   T_IntStringAppro,
   T_LiteralType,
   T_MapLiteralPattern,
@@ -98,7 +100,8 @@ typedef enum NodeTag
   T_SubCompExpr,
   T_UpdatingStmtClause,
   T_WhereStmtClause,
-  T_WithStmtClause
+  T_WithStmtClause,
+  T_YieldStmtClause
 } NodeTag;
 
 typedef struct Node
@@ -415,6 +418,11 @@ typedef struct UpdatingStmtClause /* UpdatingClause */
   NodeTag type;
   CreateStmtClause *crt;
   DeleteStmtClause *dlt;
+  int ltype; /*   SET or Remove
+              *       Other   : 0
+              *       Set     : 1
+              *       Remove  : 2
+              */
   List *st;
 } UpdatingStmtClause;
 typedef struct SingleUpdatingStmtClause
@@ -429,11 +437,44 @@ typedef struct SingleUpdatingStmtClause
   ReturnStmtClause *rt;
 } SingleUpdatingStmtClause;
 
+typedef struct ExpPrInvocation
+{
+  NodeTag type;
+  char name[MAX_COLNAME_LENGTH];
+  bool exwhls;
+  List *whls; /* ExplicitProcedureStmtClause */
+} ExpPrInvocation;
+
+typedef struct YieldStmtClause
+{
+  NodeTag type;
+  int ydtype; /*
+               *  YeildClause:
+               *          [Only support one column behind YIELD ...]
+               *
+               *  0   ---   YIELD ReturnExprList WhereClause
+               *  *   ---   YIELD '*' WhereClause
+               */
+  char returnCols[MAX_COLNAME_LENGTH];
+  bool hascolalis;
+  char colAlias[MAX_COLNAME_LENGTH];
+  WhereStmtClause *wh;
+} YieldStmtClause;
+
+typedef struct InQueryCallStmtClause
+{
+  NodeTag type;
+  ExpPrInvocation *exp;
+  YieldStmtClause *yd;
+} InQueryCallStmtClause;
+
 typedef struct ReadingStmtClause
 {
   NodeTag type;
+  int cmdtype;
   MatchStmtClause *mch;
   WhereStmtClause *wh;
+  InQueryCallStmtClause *inq;
 } ReadingStmtClause;
 
 typedef struct RdStmtClause
@@ -476,13 +517,18 @@ typedef struct MtPtStmtClause
 typedef struct MtPtStmtClauseLoop
 {
   NodeTag type;
-  List *mtqrlp;
+  List *mtqrlp; /* MtPtStmtClause */
   SgPtStmtClause *sg;
 } MtPtStmtClauseLoop;
 
 typedef struct SgStmtClause
 {
   NodeTag type;
+
+  /**
+   *  SgPtStmtClause or MtPtStmtClauseLoop
+   *
+   */
   SgPtStmtClause *sg;
   MtPtStmtClauseLoop *mt;
 } SgStmtClause;

@@ -12,7 +12,6 @@ MATCH (a) WHERE any(name in a.name WHERE name = 'uid') RETURN count(a)
 MATCH (a)-->(b) WITH b MATCH (c)<--(b) WHERE id(c) < 643 WITH c MATCH ()-[r]-(c) RETURN count(r)
 MATCH (a)-->(b)-->(c) WHERE c.node_id < b.node_id WITH c MATCH (d)--(c) WHERE exists(d.ref_count) WITH d MATCH (e)-->(d)<--(f) WHERE f.node_id > e.node_id WITH f MATCH (g)<-[ww]-(f) WHERE ww.state = 5 WITH g MATCH (g)-->(ii)-->(i) RETURN DISTINCT i.node_id ORDER BY i.node_id ASC
 MATCH (a)-->(b)-->(c)-->(d) WHERE id(d) < 123 RETURN count(a) AS cool
-MATCH (a)-->(b)-->(c:Process) WHERE a.node_id < b.node_id RETURN a.node_id, b.node_id, case c.type when 3 then 'boo' else 'hiss' end
 MATCH (a)-[*1..3]->(c:Process) RETURN count(c)
 MATCH (a)-[e]-(b) WHERE id(a) IN [100, 200, 300, 400] AND id(b) IN [101, 201, 202, 302, 404] RETURN e.state
 MATCH (a)-[e]->(b)-[f]->(c) WHERE a.type = b.type AND c.pid < b.pid RETURN count(f)
@@ -28,9 +27,15 @@ MATCH (a:Local)-[*4..9]->(b) RETURN DISTINCT b.node_id, b.sys_time AS time_alias
 MATCH (a:Meta) RETURN count(distinct a.name)
 MATCH (a:Meta) WHERE a.sys_time < 0 OR a.node_id > 845 RETURN count(a)
 MATCH (a:Person),(b:Person) WHERE a.name = 'A' AND b.name = 'B' CREATE (a)-[r:RELTYPE]->(b) RETURN type(r);
+MATCH (at {name: 'Andy'}), (pn {name: 'Peter'}) SET at = pn RETURN at.name, at.age, at.hungry, pn.name, pn.age
 MATCH (david {name: 'David'})--(otherPerson)-->() WITH otherPerson, count(*) AS foaf WHERE foaf > 1 RETURN otherPerson.name
 MATCH (george {name: 'George'})<--(otherPerson) WITH otherPerson, toUpper(otherPerson.name) AS upperCaseName WHERE upperCaseName = 'C' RETURN otherPerson.name
+MATCH (n {name: 'Andy'}) SET n.age = toString(n.age) RETURN n.name, n.age
+MATCH (n {name: 'Andy'}) SET n.name = 'null' RETURN n.name, n.age
+MATCH (n {name: 'Andy'}) SET n.position = 'Developer', n.surname = 'Taylor'
+MATCH (n {name: 'Andy'}) SET n.surname = 'Taylor' RETURN n.name, n.surname
 MATCH (n {name: 'Andy'})-[r:KNOWS]->() DELETE r;
+MATCH (n {name: 'George'}) SET n:Swedish RETURN n.name, labels(n) AS labels
 MATCH (n {name:["/var/db/entropy/saved-entropy.7", "/var/db/entropy/saved-entropy.8"]}) RETURN n.node_id ORDER BY n.node_id ASC
 MATCH (n) WHERE 'Global' in labels(n) AND any(name in n.name WHERE name = 'master') OR (exists(n.pid) AND n.status = 2) WITH n MATCH (m:Meta) WHERE m.node_id > n.node_id RETURN DISTINCT n LIMIT 10
 MATCH (n) WHERE 'Local' in labels(n) AND NOT exists(n.pid) WITH n MATCH (m:Global)-[r]->(n) WHERE id(m) > 900 RETURN n.node_id, r.state
@@ -48,6 +53,10 @@ MATCH (n:Local)<--(m:Global) RETURN m.node_id AS thing, m.type AS ty ORDER BY m.
 MATCH (n:Meta)<--(m:Process)-->(p) WHERE n.node_id > m.node_id AND p.node_id <= m.node_id RETURN count(m)
 MATCH (n:Person {name: 'UNKNOWN'}) DELETE n;
 MATCH (n:Process)<-[e:PROC_OBJ]-(c:Local) WHERE id(n) = 916 AND e.state in [5] RETURN c.name, e.state ORDER BY c.name DESC
+MATCH (p {name: 'Peter'}) SET p += {name: 'Peter Smith', position: 'Entrepreneur'} RETURN p.name, p.age, p.position
+MATCH (p {name: 'Peter'}) SET p += {} RETURN p.name, p.age
+MATCH (p {name: 'Peter'}) SET p = {name: 'Peter Smith', position: 'Entrepreneur'} RETURN p.name, p.age, p.position
+MATCH (p {name: 'Peter'}) SET p = {} RETURN p.name, p.age
 MATCH (person)-[r]->(otherPerson) WITH *, type(r) AS connectionType RETURN person.name, otherPerson.name, connectionType;
 MATCH (proc:Process)<-[po:PROC_OBJ]-(loc:Local)<-[lo:LOC_OBJ]-(gl:Global)-->(:Local)-->(proc2:Process) WHERE id(proc) IN [137, 149, 162, 278] RETURN DISTINCT proc2.pid ORDER BY proc2.pid ASC
 MATCH (s)-[e]-(d) WHERE id(s) = 349 AND NOT 'Process' in labels(s) AND NOT 'Global' in labels(d) RETURN d.node_id ORDER BY d.node_id ASC

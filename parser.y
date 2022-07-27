@@ -36,36 +36,37 @@ char attrNum[MAX_COLNAME_LENGTH];
 	AnyExpr 				 *anyExpr;
 	ComparisionExpr_Stru 	 *cmpexprstru;
 	Comparision_Stru 		 *cmpStru;
+	CreateStmtClause		 *crtstmtcls;
+	DeleteStmtClause		 *dltstmtcls;
 	IntLiteralPattern 		 *intltpt;
 	IntStringAppro 			 *intStrApp;
 	List 					 *list;
 	LiteralType 			 *ltrlType;
 	MapLiterals 			 *maplit;
 	MatchStmtClause 		 *mchstmtcls;
+	MtPtStmtClause      	 *mtptstmtcls;
+	MtPtStmtClauseLoop		 *mtptstmtclslp;
 	NODEPattern 			 *nodeptn;
 	Node					 *node;
 	NodeLabel 			 	 *nodelbl;
 	OrderByStmtClause 		 *odb;
 	PatternEleChain 		 *ptnEleChn;
 	PatternList 			 *ptnlist;
+	RdStmtClause			 *rdstcls;
+	ReadingStmtClause		 *rdstmtcls;
+	ReglQueryClause			 *rglqrcls;
 	RelationShip 			 *relship;
 	RelationShipPattern 	 *relshipptn;
 	ReturnCols				 *rtcols;
 	ReturnStmtClause		 *rtstmtcls;	
-	SubCompExpr 			 *subCompExpr;
-	WhereStmtClause 		 *whstmtcls;
-	CreateStmtClause		 *crtstmtcls;
-	DeleteStmtClause		 *dltstmtcls;
+	SetStmtClause			 *ststmtcls;
 	SgPtStmtClause			 *sgptstmtcls;
 	SgStmtClause        	 *sgstmtcls;
-	MtPtStmtClause      	 *mtptstmtcls;
-	ReadingStmtClause		 *rdstmtcls;
-	UpdatingStmtClause		 *updstmtcls;
 	SingleUpdatingStmtClause *sgupdstmtcls;
-	RdStmtClause			 *rdstcls;
+	SubCompExpr 			 *subCompExpr;
+	UpdatingStmtClause		 *updstmtcls;
+	WhereStmtClause 		 *whstmtcls;
 	WithStmtClause			 *wstmtcls;
-	MtPtStmtClauseLoop		 *mtptstmtclslp;
-	ReglQueryClause			 *rglqrcls;
 } /* Generate YYSTYPE from these types:  */
 
 %token <intval> INTNUM
@@ -76,6 +77,7 @@ char attrNum[MAX_COLNAME_LENGTH];
 %token <strval> PPOINT
 %token <strval> RIGHTARROW
 %token <strval> LEFTARROW
+%token <strval> PLUSEQUL
 
 
 %left OR
@@ -101,6 +103,7 @@ char attrNum[MAX_COLNAME_LENGTH];
 %token <keyword> NOT NULLX 
 %token <keyword> ON OR ORDER 
 %token <keyword> RETURN 
+%token <keyword> SET 
 %token <keyword> UNION 
 %token <keyword> WHERE WITH 
 %token <keyword> XOR 
@@ -121,7 +124,7 @@ char attrNum[MAX_COLNAME_LENGTH];
 			 			MapLiteralPattern MultiPartQueryLoopClause
 			 			Pattern PatternElementChainClause PatternElementChains 
 			 			RegularQuery ReturnExprList
-			 			StringList
+			 			SetClause StringList 
 %type <ltrlType> 		Literal
 %type <maplit> 			PropertiesPattern MapLiteralClause
 %type <mod> 			sexps
@@ -132,7 +135,7 @@ char attrNum[MAX_COLNAME_LENGTH];
 						MapLiteralPatternPart MultiPartQueryClause
 			 			PatternElementChain PatternPart 
 			 			ReturnExpr 
-			 			SingleQuery StringParamNode
+			 			SetPartClause SingleQuery StringParamNode
 %type <nodelbl> 		NodeLabelsPattern
 %type <nodeptn> 		NodePattern
 %type <odb> 			OrderByClause
@@ -380,18 +383,133 @@ UpdatingClause:CreateClause	 /* UpdatingStmtClause */
 								$$ = makeNode(UpdatingStmtClause);
 								$$ -> crt = $1;
 								$$ -> dlt = NULL;
+								$$ -> st = NULL;
 							}
-| DeleteClause
+|	DeleteClause
 							{
 								_emit("UpdatingClause DeleteClause");
 								$$ = makeNode(UpdatingStmtClause);
 								$$ -> crt = NULL;
 								$$ -> dlt = $1;
+								$$ -> st = NULL;
+							}
+	
+|	SET	SetClause				/* List SetStmtClause */
+							{
+								_emit("Set :");
+								$$ = makeNode(UpdatingStmtClause);
+								$$ -> crt = NULL;
+								$$ -> dlt = NULL;
+								$$ -> st = $2;
 							}
 	/* ToDO: ...... */
 ;
 
+SetClause:SetPartClause		/* List */
+							{
+								_emit("SetClause:SetPartClause");
+								$$ = list_make1($1);
+							}
+|	SetClause ',' SetPartClause
+							{
+								_emit("SetClause: SetPartClause ',' SetPartClause ... ");
+								$$ = lappend($1,$3);
+							}
+;
 
+SetPartClause: 
+	Variable_Pattern COMPARISON WhereExpression		/*  Variable_Pattern = Expression  */
+							{
+								_emit("SetPartClause  = ");
+								SetStmtClause *set;
+								set = makeNode(SetStmtClause);
+
+								if ($2 == 4)	//  COMPARISON : '='
+									set -> exptype = 1;
+								else
+									ERROR("Expected  \"=\" In SET Expression");
+
+								if (strlen($1) <= MAX_COLNAME_LENGTH)
+									strncpy(set -> name, $1, strlen($1));
+								else
+									ERROR("colName is too long!");
+								
+								set -> wh = $3;
+								set -> mp = NULL;
+								$$ = (Node *)set;
+
+							}
+|	Variable_Pattern PLUSEQUL WhereExpression	/* Variable_Pattern += Expression */
+							{
+								_emit("SetPartClause  += ");
+								SetStmtClause *set;
+								set = makeNode(SetStmtClause);
+								set -> exptype = 2;
+
+								if (strlen($1) <= MAX_COLNAME_LENGTH)
+									strncpy(set -> name, $1, strlen($1));
+								else
+									ERROR("colName is too long!");
+								
+								set -> wh = $3;
+								set -> mp = NULL;
+								$$ = (Node *)set;
+							}
+|	Variable_Pattern COMPARISON '{' MapLiteralClause '}'
+							{
+								_emit("SetPartClause  = {name:'Value', name='Value' ...}");
+								SetStmtClause *set;
+								set = makeNode(SetStmtClause);
+
+								if ($2 == 4)	//  COMPARISON : '='
+									set -> exptype = 3;
+								else
+									ERROR("Expected  \"=\" In SET Expression");
+
+								if (strlen($1) <= MAX_COLNAME_LENGTH)
+									strncpy(set -> name, $1, strlen($1));
+								else
+									ERROR("colName is too long!");
+								
+								set -> wh = NULL;
+								set -> mp = $4;
+								$$ = (Node *)set;
+							}
+|	Variable_Pattern PLUSEQUL '{' MapLiteralClause '}'	/* Variable_Pattern += Expression */
+							{
+								_emit("SetPartClause  += {name:'Value', name='Value' ...}");
+								SetStmtClause *set;
+								set = makeNode(SetStmtClause);
+								set -> exptype = 4;
+
+								if (strlen($1) <= MAX_COLNAME_LENGTH)
+									strncpy(set -> name, $1, strlen($1));
+								else
+									ERROR("colName is too long!");
+								
+								set -> wh = NULL;
+								set -> mp = $4;
+								$$ = (Node *)set;
+							}
+|	Variable_Pattern ':' WhereExpression		/*  Variable_Pattern = Expression  */
+							{
+								_emit("SetPartClause  : ");
+								SetStmtClause *set;
+								set = makeNode(SetStmtClause);
+
+								set -> exptype = 5;
+
+								if (strlen($1) <= MAX_COLNAME_LENGTH)
+									strncpy(set -> name, $1, strlen($1));
+								else
+									ERROR("colName is too long!");
+								
+								set -> wh = $3;
+								set -> mp = NULL;
+								$$ = (Node *)set;
+
+							}
+;
 
 /****************************************************************************/
 
@@ -1399,7 +1517,7 @@ ColName:NAME
 				}
 | NAME '.' NAME  
 				{
-					// _emit("ColName");
+					 _emit("Name . Name");
 					if (strlen($1) + strlen($3) <= MAX_COLNAME_LENGTH)
 						sprintf(colNameAttr,"%s.%s",$1,$3);
 					else

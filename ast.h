@@ -65,39 +65,40 @@ typedef enum NodeTag
 {
   T_Node,
   T_List,
-  T_ReturnStmtClause,
-  T_ReturnCols,
-  T_OrderByStmtClause,
-  T_WhereStmtClause,
-  T_Comparision_Stru,
-  T_ComparisionExpr_Stru,
-  T_SubCompExpr,
-  T_IntStringAppro,
-  T_AnyExpr,
-  T_LiteralType,
-  T_NodeLabel,
-  T_NODEPattern,
-  T_MapLiteralPattern,
-  T_MapLiterals,
-  T_RelationShip,
-  T_RelationShipPattern,
-  T_PatternEleChain,
   T_AnnoyPattern,
-  T_PatternList,
-  T_MatchStmtClause,
-  T_IntLiteralPattern,
+  T_AnyExpr,
+  T_ComparisionExpr_Stru,
+  T_Comparision_Stru,
   T_CreateStmtClause,
   T_DeleteStmtClause,
+  T_IntLiteralPattern,
+  T_IntStringAppro,
+  T_LiteralType,
+  T_MapLiteralPattern,
+  T_MapLiterals,
+  T_MatchStmtClause,
+  T_MtPtStmtClause,
+  T_MtPtStmtClauseLoop,
+  T_NODEPattern,
+  T_NodeLabel,
+  T_OrderByStmtClause,
+  T_PatternEleChain,
+  T_PatternList,
+  T_RdStmtClause,
+  T_ReadingStmtClause,
+  T_ReglQueryClause,
+  T_RelationShip,
+  T_RelationShipPattern,
+  T_ReturnCols,
+  T_ReturnStmtClause,
+  T_SetStmtClause,
   T_SgPtStmtClause,
   T_SgStmtClause,
-  T_ReadingStmtClause,
-  T_UpdatingStmtClause,
-  T_MtPtStmtClause,
   T_SingleUpdatingStmtClause,
-  T_RdStmtClause,
-  T_WithStmtClause,
-  T_MtPtStmtClauseLoop,
-  T_ReglQueryClause
+  T_SubCompExpr,
+  T_UpdatingStmtClause,
+  T_WhereStmtClause,
+  T_WithStmtClause
 } NodeTag;
 
 typedef struct Node
@@ -219,7 +220,7 @@ typedef struct LiteralType
     int intParam;                      // IntParam
     char strParam[MAX_COLNAME_LENGTH]; // StringParam  && colname
     bool boolValue;                    // BOOL
-    char ifNull[4];                    // NULLX
+    char ifNull[5];                    // NULLX
     double approxNumParam;             // appronum
   } ltype;
 } LiteralType;
@@ -400,11 +401,21 @@ typedef struct DeleteStmtClause
   ComparisionExpr_Stru *root;
 } DeleteStmtClause;
 
+typedef struct SetStmtClause
+{
+  NodeTag type;
+  int exptype;
+  char name[MAX_COLNAME_LENGTH];
+  ComparisionExpr_Stru *wh;
+  MapLiterals *mp;
+} SetStmtClause;
+
 typedef struct UpdatingStmtClause /* UpdatingClause */
 {
   NodeTag type;
   CreateStmtClause *crt;
   DeleteStmtClause *dlt;
+  List *st;
 } UpdatingStmtClause;
 typedef struct SingleUpdatingStmtClause
 {

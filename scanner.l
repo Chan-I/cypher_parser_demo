@@ -16,35 +16,36 @@ int oldstate;
 
 %%
 
-AS          { return AS;         }
-ANY         { return ANY;        }
 ALL         { return ALL;        }
+AND         { return AND;        }
+ANY         { return ANY;        }
+AS          { return AS;         }
+ASC         { return ASC;        }
+BY          { return BY;         }
+CONTAINS    { return CONTAINS;   }
+COUNT       { return COUNT;      }
 CREATE      { return CREATE;     }
-MATCH       { return MATCH;      }
-RETURN      { return RETURN;     }
 DELETE      { return DELETE;     }
 DESC        { return DESC;       }
-ASC         { return ASC;        }
 DISTINCT    { return DISTINCT;   } 
-ORDER       { return ORDER;      }
-BY          { return BY;         }
-LIMIT       { return LIMIT;      }
-MERGE       { return MERGE;      }
-ON          { return ON;         }
-WHERE       { return WHERE;      }
-WITH        { return WITH;       }
-UNION       { return UNION;      }
-AND         { return AND;        }
 ENDS        { return ENDS;       }
+EXISTS      { return EXISTS;     }
 IN          { return IN;         }
 IS          { return IS;         }
+LIMIT       { return LIMIT;      }
+MATCH       { return MATCH;      }
+MERGE       { return MERGE;      }
 NOT         { return NOT;        }
-OR          { return OR;         }
-XOR         { return XOR;        }
 NULL        { return NULLX;      }
-COUNT       { return COUNT;      }
-EXISTS      { return EXISTS;     }
-CONTAINS    { return CONTAINS;   }
+ON          { return ON;         }
+OR          { return OR;         }
+ORDER       { return ORDER;      }
+RETURN      { return RETURN;     }
+SET         { return SET;        }
+UNION       { return UNION;      }
+WHERE       { return WHERE;      }
+WITH        { return WITH;       }
+XOR         { return XOR;        }
 TRUE    { yylval->intval = 1; return BOOL; }
 FALSE   { yylval->intval = 0; return BOOL; }
 
@@ -72,7 +73,7 @@ FALSE   { yylval->intval = 0; return BOOL; }
 
 "->"    {yylval->strval = strdup(yytext); return RIGHTARROW;}
 "<-"    {yylval->strval = strdup(yytext); return LEFTARROW;}
-
+"+="    {yylval->strval = strdup(yytext); return PLUSEQUL;}
 
 [-+*/%(){}.:;,\[\]<>]  { return  yytext[0]; }
 

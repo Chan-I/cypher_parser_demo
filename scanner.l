@@ -83,7 +83,7 @@ FALSE   { yylval->intval = 0; return BOOL; }
 ".."    { yylval->strval = strdup(yytext); return PPOINT; }
 
 [ \t\r\f]       ;
-\n              { return EOL; }         /* Used for Stdin Mod ... */
+\n              ;         /* Used for Stdin Mod ... */
 
     /* comments */
 #.*		        ;

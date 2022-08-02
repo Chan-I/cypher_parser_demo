@@ -3,13 +3,13 @@
 int oldstate;
 %}
 
+%option bison-bridge
+%option case-insensitive
+%option noinput
+%option nounput
+%option noyywrap
 %option reentrant
 %option yylineno
-
-%option noyywrap
-
-%option case-insensitive
-%option bison-bridge
 
 %x COMMENT
 %s BTWMODE

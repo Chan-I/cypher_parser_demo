@@ -82,10 +82,11 @@ FALSE   { yylval->intval = 0; return BOOL; }
 
 ".."    { yylval->strval = strdup(yytext); return PPOINT; }
 
-[ \t\r\f\n]       ;
+[ \t\r\f]       ;
+[\n]			;
 
     /* comments */
-"#"[^\n\t\f\r]*	;
+"#"[^\n]*	;
 "//".*	        ;
 "/*"            {oldstate = YY_START; BEGIN COMMENT;}
 <COMMENT>"*/"   {BEGIN oldstate;}

@@ -185,8 +185,16 @@ sexps:
 		Cypher ';'			
 			{
 				_emit("Module List :RegularQuery");
-				mod -> regl = $1;
-				return 0;
+				if ($1 != NULL)
+				{
+					mod -> regl = $1;
+					return 0;
+				}
+				else
+				{
+					mod -> regl = NULL;
+					return 1;
+				}
 			}
 	;
 
@@ -196,6 +204,10 @@ Cypher:
 				_emit("Cypher:RegularQuery");
 				$$ = makeNode(ReglQueryClause);
 				$$ -> rgl = $1;
+			}
+		|
+			{
+				$$ = NULL;
 			}
 	;
 

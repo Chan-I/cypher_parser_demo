@@ -17,7 +17,7 @@ int main(int argc, char **argv)
 #endif
 	while (1)
 	{
-		fprintf(stdout, "> ");
+		fprintf(stdout, "CypherParser=# ");
 		fflush(stdout);
 		mod = new_module_from_stdin();
 		res = parse_module(mod);
@@ -27,6 +27,10 @@ int main(int argc, char **argv)
 			printf("success!\n");
 			sql = print_module(mod);
 			// printf("%s\n", sql);
+		}
+		else if (res == 1)
+		{
+			continue;
 		}
 		else
 			exit(0);

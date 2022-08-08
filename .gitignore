@@ -4,11 +4,10 @@
 *.tab.c
 *.tab.h
 .vscode/
-scanner.c
-scanner.h
-parser.c
-parser.h
+scanner.[ch]
+parser.[ch]
 .*.output
 run
 *.swp
 test
+*log

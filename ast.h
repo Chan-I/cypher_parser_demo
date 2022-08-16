@@ -79,6 +79,8 @@ typedef enum NodeTag
   T_MapLiteralPattern,
   T_MapLiterals,
   T_MatchStmtClause,
+  T_MergeSetClause,
+  T_MergeSetExpression,
   T_MtPtStmtClause,
   T_MtPtStmtClauseLoop,
   T_NODEPattern,
@@ -413,6 +415,20 @@ typedef struct SetStmtClause
   MapLiterals *mp;
 } SetStmtClause;
 
+typedef struct MergeSetClause
+{
+  NodeTag type;
+  int exptype;
+  List *st;
+} MergeSetClause;
+
+typedef struct MergeSetExpression
+{
+  NodeTag type;
+  AnnoyPattern *annoyPattern;
+  List *mgstexp;
+} MergeSetExpression;
+
 typedef struct UpdatingStmtClause /* UpdatingClause */
 {
   NodeTag type;
@@ -422,8 +438,10 @@ typedef struct UpdatingStmtClause /* UpdatingClause */
               *       Other   : 0
               *       Set     : 1
               *       Remove  : 2
+              *       Merge   : 3
               */
   List *st;
+  MergeSetExpression *mg;
 } UpdatingStmtClause;
 typedef struct SingleUpdatingStmtClause
 {

@@ -46,6 +46,8 @@ char attrNum[MAX_COLNAME_LENGTH];
 	LiteralType 			 *ltrlType;
 	MapLiterals 			 *maplit;
 	MatchStmtClause 		 *mchstmtcls;
+	MergeSetClause			 *mgstcls;
+	MergeSetExpression		 *mgstexp;
 	MtPtStmtClause      	 *mtptstmtcls;
 	MtPtStmtClauseLoop		 *mtptstmtclslp;
 	NODEPattern 			 *nodeptn;
@@ -128,7 +130,7 @@ char attrNum[MAX_COLNAME_LENGTH];
 %type <list> 			ApproxnumList 
 						ExplicitProcedureClause ExplicitProcedureStmtClause
 			 			INExpression IntList 
-			 			MapLiteralPattern MultiPartQueryLoopClause
+			 			MapLiteralPattern MergeSetExpStmt MergeSetExp MultiPartQueryLoopClause
 			 			Pattern PatternElementChainClause PatternElementChains 
 			 			RegularQuery ReturnExprList
 			 			SetClause StringList 
@@ -136,10 +138,11 @@ char attrNum[MAX_COLNAME_LENGTH];
 %type <maplit> 			PropertiesPattern MapLiteralClause
 %type <mod> 			sexps
 %type <mchstmtcls> 		MatchClause
+%type <mgstexp>			MergeClause
 %type <mtptstmtclslp> 	MultiPartQuery
 %type <node> 			ApproxnumParamNode 
 			 			IntParamNode 
-						MapLiteralPatternPart MultiPartQueryClause
+						MapLiteralPatternPart MergeSetExpStmtPart MultiPartQueryClause
 			 			PatternElementChain PatternPart 
 			 			ReturnExpr 
 			 			SetPartClause SingleQuery StringParamNode
@@ -521,6 +524,8 @@ UpdatingClause:
  *		NodeTag type;
  *		CreateStmtClause *crt;
  *		DeleteStmtClause *dlt;
+ *		List *st;
+ *		MergeSetExpression *mg;
  *	} UpdatingStmtClause;
  */
 		CreateClause	 /* UpdatingStmtClause */
@@ -531,6 +536,7 @@ UpdatingClause:
 				$$ -> dlt = NULL;
 				$$ -> ltype = 0;
 				$$ -> st = NULL;
+				$$ -> mg = NULL;
 			}
 		| DeleteClause
 			{
@@ -540,6 +546,7 @@ UpdatingClause:
 				$$ -> dlt = $1;
 				$$ -> ltype = 0;
 				$$ -> st = NULL;
+				$$ -> mg = NULL;
 			}
 	
 		| SET SetClause				/* List SetStmtClause */
@@ -550,6 +557,7 @@ UpdatingClause:
 				$$ -> dlt = NULL;
 				$$ -> ltype = 1;		/* SET: ltype = 1 */
 				$$ -> st = $2;
+				$$ -> mg = NULL;
 			}
 		| REMOVE SetClause				/* List SetStmtClause */
 			{
@@ -559,8 +567,70 @@ UpdatingClause:
 				$$ -> dlt = NULL;
 				$$ -> ltype = 2;		/* REMOVE: ltype = 2 */
 				$$ -> st = $2;
+				$$ -> mg = NULL;
+			}
+		| MERGE MergeClause
+			{
+				$$ = makeNode(UpdatingStmtClause);
+				$$ -> crt = NULL;
+				$$ -> dlt = NULL;
+				$$ -> ltype = 3;		/* REMOVE: ltype = 2 */
+				$$ -> st = NULL;
+				$$ -> mg = $2;
 			}
 	/* ToDO: ...... */
+	;
+
+MergeClause:
+		PatternElement MergeSetExp
+			{
+				$$ = makeNode(MergeSetExpression);
+				$$ -> annoyPattern = $1;
+				if ($2 == NULL)
+					$$ -> mgstexp = NULL;
+				else
+					$$ -> mgstexp = $2;
+			}
+	;
+
+MergeSetExp:
+			{
+				$$ = NULL;
+			}
+		| MergeSetExpStmt
+			{
+				$$ = $1;
+			}
+	;
+
+MergeSetExpStmt:
+		MergeSetExpStmt MergeSetExpStmtPart
+			{
+				$$ = lappend($1, $2);
+			}
+		| MergeSetExpStmtPart
+			{
+				$$ = list_make1($1);
+			}
+	;
+
+MergeSetExpStmtPart:
+		ON MATCH SetClause
+			{
+				MergeSetClause *mgsl;
+				mgsl = makeNode(MergeSetClause);
+				mgsl -> type = 0;	//MATCH
+				mgsl -> st = $3;
+				$$ = (Node *)mgsl;
+			}
+		| ON CREATE SetClause
+			{
+				MergeSetClause *mgsl;
+				mgsl = makeNode(MergeSetClause);
+				mgsl -> type = 1;	//CREATE
+				mgsl -> st = $3;
+				$$ = (Node *)mgsl;
+			}
 	;
 
 SetClause:
@@ -685,12 +755,13 @@ SetPartClause:
 				set = makeNode(SetStmtClause);
 
 				set -> exptype = 5;
-
-				if (strlen($1) <= MAX_COLNAME_LENGTH)
-					strncpy(set -> name, $1, strlen($1));
-				else
-					ERROR("colName is too long!");
-				
+				if ($1 != NULL)
+				{
+					if (strlen($1) <= MAX_COLNAME_LENGTH)
+						strncpy(set -> name, $1, strlen($1));
+					else
+						ERROR("colName is too long!");
+				}
 				set -> wh = NULL;
 				set -> mp = NULL;
 				$$ = (Node *)set;

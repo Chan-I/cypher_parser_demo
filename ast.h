@@ -101,6 +101,7 @@ typedef enum NodeTag
   T_SingleUpdatingStmtClause,
   T_SubCompExpr,
   T_UpdatingStmtClause,
+  T_UnWindStmtClause,
   T_WhereStmtClause,
   T_WithStmtClause,
   T_YieldStmtClause
@@ -486,6 +487,13 @@ typedef struct InQueryCallStmtClause
   YieldStmtClause *yd;
 } InQueryCallStmtClause;
 
+typedef struct UnWindStmtClause
+{
+  NodeTag type;
+  ComparisionExpr_Stru *root;
+  char colAlias[MAX_COLNAME_LENGTH];
+} UnWindStmtClause;
+
 typedef struct ReadingStmtClause
 {
   NodeTag type;
@@ -493,6 +501,7 @@ typedef struct ReadingStmtClause
   MatchStmtClause *mch;
   WhereStmtClause *wh;
   InQueryCallStmtClause *inq;
+  UnWindStmtClause *unwd;
 } ReadingStmtClause;
 
 typedef struct RdStmtClause

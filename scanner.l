@@ -45,6 +45,7 @@ REMOVE      { return REMOVE;     }
 RETURN      { return RETURN;     }
 SET         { return SET;        }
 UNION       { return UNION;      }
+UNWIND      { return UNWIND;     }
 WHERE       { return WHERE;      }
 WITH        { return WITH;       }
 XOR         { return XOR;        }

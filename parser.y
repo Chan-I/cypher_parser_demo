@@ -69,6 +69,7 @@ char attrNum[MAX_COLNAME_LENGTH];
 	SingleUpdatingStmtClause *sgupdstmtcls;
 	SubCompExpr 			 *subCompExpr;
 	UpdatingStmtClause		 *updstmtcls;
+	UnWindStmtClause		 *unwdstmtcls;
 	WhereStmtClause 		 *whstmtcls;
 	WithStmtClause			 *wstmtcls;
 	YieldStmtClause			 *ydstmtcls;
@@ -109,7 +110,7 @@ char attrNum[MAX_COLNAME_LENGTH];
 %token <keyword> ON OR ORDER 
 %token <keyword> REMOVE RETURN 
 %token <keyword> SET 
-%token <keyword> UNION 
+%token <keyword> UNION UNWIND
 %token <keyword> WHERE WITH 
 %token <keyword> XOR 
 %token <keyword> YIELD
@@ -169,6 +170,7 @@ char attrNum[MAX_COLNAME_LENGTH];
 %type <rdstcls>			RdStmtClause
 %type <rdstmtcls>		ReadingClause
 %type <updstmtcls>		UpdatingClause
+%type <unwdstmtcls>		UnwindClause
 %type <whstmtcls> 		WhereClause
 %type <wstmtcls>		WithClause
 %type <ydstmtcls>		YeildClause
@@ -396,21 +398,49 @@ ReadingClause:    /* ReadingStmtClause */
 			{
 				_emit("ReadingClause MatchClause WhereClause");
 				$$ = makeNode(ReadingStmtClause);
-				$$ -> cmdtype = 'M';
+				$$ -> cmdtype = 0;
 				$$ -> mch = $1;
 				$$ -> wh = $2;
 				$$ -> inq = NULL;
+				$$ -> unwd = NULL;
 			}
 		| InQueryCall      /* CALL .... */
 			{
 				_emit("ReadingClause InQueryCall");
 				$$ = makeNode(ReadingStmtClause);
-				$$ -> cmdtype = 'I';
+				$$ -> cmdtype = 1;
 				$$ -> mch = NULL;
 				$$ -> wh = NULL;
 				$$ -> inq = $1;
+				$$ -> unwd = NULL;
+			}
+		| UnwindClause
+			{
+				_emit("ReadingClause UnwindClause");
+				$$ = makeNode(ReadingStmtClause);
+				$$ -> cmdtype = 1;
+				$$ -> mch = NULL;
+				$$ -> wh = NULL;
+				$$ -> inq = NULL;
+				$$ -> unwd = $1;
 			}
 		/* To Do: .... */
+	;
+
+UnwindClause:
+		UNWIND WhereExpression AS ColName
+			{
+				_emit("UnwindClause:UNWIND WhereExpression AS ColName");
+				$$ = makeNode(UnWindStmtClause);
+				$$ -> root = $2;
+				if ($4 != NULL)
+				{
+					if (strlen($4) <= MAX_COLNAME_LENGTH)
+						strncpy($$ -> colAlias, $4, MAX_COLNAME_LENGTH);
+					else
+						ERROR("ColName is too long");
+				}
+			}
 	;
 
 InQueryCall:	/* InQueryCallStmtClause */
@@ -421,7 +451,7 @@ InQueryCall:	/* InQueryCallStmtClause */
 				$$ -> exp = $2;
 				$$ -> yd = $3;
 			}
-;
+	;
 
 ExplicitProcedureInvocation:	// ExpPrInvocation 
 		ColName '(' ExplicitProcedureClause ')'

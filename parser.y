@@ -1120,55 +1120,67 @@ RelationshipPattern:
 			{
 				_emit("<-   ->");
 				$$ = makeNode(RelationShipPattern);
-				$$ -> reltype = 1;   
-				$$ -> relShip = $2;
+				if ($2 != NULL)
+				{
+					$$ -> reltype = 1;   
+					$$ -> relShip = $2;
+				}
+				else
+					ERROR("there must be content between <- ->");
 			}
 		| LEFTARROW RelationshipDetail '-'      
 			{
 				_emit("<-   -");
 				$$ = makeNode(RelationShipPattern);
-				$$ -> reltype = 2;  
-				$$ -> relShip = $2;
+				if ($2 != NULL)
+				{
+					$$ -> reltype = 2;  
+					$$ -> relShip = $2;
+				}
+				else
+				{
+					$$ -> reltype = 6;  
+					$$ -> relShip = NULL;
+				}
 			}
 		| '-' RelationshipDetail RIGHTARROW     
 			{	
 				_emit("-    ->");
 				$$ = makeNode(RelationShipPattern);
-				$$ -> reltype = 3;  
-				$$ -> relShip = $2;
+				if ($2 != NULL)
+				{
+					$$ -> reltype = 3;  
+					$$ -> relShip = $2;
+				}
+				else
+				{
+					$$ -> reltype = 5;  
+					$$ -> relShip = NULL;
+				}
 			}
 		| '-' RelationshipDetail '-'            
 			{
 				_emit("-    -");
 				$$ = makeNode(RelationShipPattern);
-				$$ -> reltype = 4;  
-				$$ -> relShip = $2;
-			}
-		| '-' RIGHTARROW                        
-			{	
-				_emit("-->");
-				$$ = makeNode(RelationShipPattern);
-				$$ -> reltype = 5;  
-				$$ -> relShip = NULL;
-			}
-		| LEFTARROW '-'                         
-			{
-				_emit("<--");
-				$$ = makeNode(RelationShipPattern);
-				$$ -> reltype = 6;  
-				$$ -> relShip = NULL;
-			}
-		| '-''-'                               
-			 {	
-				_emit("--");
-				$$ = makeNode(RelationShipPattern);
-				$$ -> reltype = 7;  
-				$$ -> relShip = NULL;
+				if ($2 != NULL)
+				{
+					$$ -> reltype = 4;  
+					$$ -> relShip = $2;
+				}
+				else
+				{
+					$$ -> reltype = 7;  
+					$$ -> relShip = NULL;
+				}
 			}
 	;
 
 RelationshipDetail: 
-		'[' Variable_Pattern RelationshipTypePattern IntegerLiteralPattern PropertiesPattern ']'    
+			{
+				_emit("RelationshipDetail is NULL");
+				$$ = NULL;
+			}
+		| '[' Variable_Pattern RelationshipTypePattern IntegerLiteralPattern PropertiesPattern ']'    
 			{	
 				_emit("[RelationshipDetail]");
 				$$ = makeNode(RelationShip);

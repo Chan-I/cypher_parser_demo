@@ -1459,6 +1459,84 @@ WhereExpression:
 				$$ -> rchild = NULL;
 				$$ -> nchild = $2;
 			}
+		| WhereExpression '+' WhereExpression
+			{
+				_emit("+");
+				$$ = makeNode(ComparisionExpr_Stru);
+				$$ -> exprType = '+';
+				$$ -> exPartialComExpr = false;
+				$$ -> subComp = NULL;
+				$$ -> branch = true;
+				$$ -> comp = NULL;
+				$$ -> lchild = $1;
+				$$ -> rchild = $3;
+				$$ -> nchild = NULL;
+			}
+		| WhereExpression '*' WhereExpression
+			{
+				_emit("*");
+				$$ = makeNode(ComparisionExpr_Stru);
+				$$ -> exprType = '*';
+				$$ -> exPartialComExpr = false;
+				$$ -> subComp = NULL;
+				$$ -> branch = true;
+				$$ -> comp = NULL;
+				$$ -> lchild = $1;
+				$$ -> rchild = $3;
+				$$ -> nchild = NULL;				
+			}
+		| WhereExpression '/' WhereExpression
+			{
+				_emit("/");
+				$$ = makeNode(ComparisionExpr_Stru);
+				$$ -> exprType = '/';
+				$$ -> exPartialComExpr = false;
+				$$ -> subComp = NULL;
+				$$ -> branch = true;
+				$$ -> comp = NULL;
+				$$ -> lchild = $1;
+				$$ -> rchild = $3;
+				$$ -> nchild = NULL;				
+			}
+		| WhereExpression '%' WhereExpression
+			{
+				_emit("%");
+				$$ = makeNode(ComparisionExpr_Stru);
+				$$ -> exprType = '%';
+				$$ -> exPartialComExpr = false;
+				$$ -> subComp = NULL;
+				$$ -> branch = true;
+				$$ -> comp = NULL;
+				$$ -> lchild = $1;
+				$$ -> rchild = $3;
+				$$ -> nchild = NULL;				
+			}
+		| WhereExpression '-' WhereExpression
+			{
+				_emit("-");
+				$$ = makeNode(ComparisionExpr_Stru);
+				$$ -> exprType = '-';
+				$$ -> exPartialComExpr = false;
+				$$ -> subComp = NULL;
+				$$ -> branch = true;
+				$$ -> comp = NULL;
+				$$ -> lchild = $1;
+				$$ -> rchild = $3;
+				$$ -> nchild = NULL;				
+			}
+		| WhereExpression COMPARISON WhereExpression
+			{
+				_emit("where COMPARISON where");
+				$$ = makeNode(ComparisionExpr_Stru);
+				$$ -> exprType = $2;
+				$$ -> exPartialComExpr = false;
+				$$ -> subComp = NULL;
+				$$ -> branch = true;
+				$$ -> comp = NULL;
+				$$ -> lchild = $1;
+				$$ -> rchild = $3;
+				$$ -> nchild = NULL;
+			}
 	;
 
 // ComparisonExpression:Expression PartialComparisonExpression    {_emit("ComparisonExpression");}
@@ -1468,7 +1546,7 @@ PartialComparisonExpression:
 			{
 				$$ = NULL;
 			}
-		| COMPARISON Expression     
+	/*	| COMPARISON Expression     
 			{
 				_emit("COMPARISION %d",$1);
 				$$ = makeNode(SubCompExpr);
@@ -1476,6 +1554,7 @@ PartialComparisonExpression:
 				$$ -> compType = $1;
 				$$ -> subComprisionExpr = $2;
 			}
+			*/
 		| IN Expression             
 			{
 				_emit("IN");

@@ -10,6 +10,7 @@ int oldstate;
 %option noyywrap
 %option reentrant
 %option yylineno
+%option prefix="module_yy"
 
 %x COMMENT
 %s BTWMODE

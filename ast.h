@@ -10,6 +10,7 @@
 #include <stdint.h>
 
 #define MAX_COLNAME_LENGTH 128
+#define YYLTYPE int
 
 #define FREE(a) \
   do            \
@@ -48,11 +49,11 @@
     a = NULL;                       \
   } while (0)
 
-#define ERROR(msg)              \
-  do                            \
-  {                             \
-    yyerror(scanner, mod, msg); \
-    return 1;                   \
+#define ERROR(msg)                     \
+  do                                   \
+  {                                    \
+    module_yyerror(scanner, mod, msg); \
+    return 1;                          \
   } while (0)
 
 #ifdef __YYEMIT
@@ -106,6 +107,8 @@ typedef enum NodeTag
   T_WithStmtClause,
   T_YieldStmtClause
 } NodeTag;
+
+typedef void *core_yyscan_t;
 
 typedef struct Node
 {

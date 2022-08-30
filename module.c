@@ -31,14 +31,14 @@ int parse_module(module *mod)
   yyscan_t sc;
   int res;
 
-  yylex_init(&sc);
-  yyset_in(mod->src, sc);
+  module_yylex_init(&sc);
+  module_yyset_in(mod->src, sc);
 
 #ifdef _YYDEBUG
   yydebug = 1;
 #endif
 
-  res = yyparse(sc, mod);
+  res = module_yyparse(sc, mod);
   return res;
 }
 

@@ -1,9 +1,10 @@
 %define api.pure full
-%lex-param {void *scanner}
-%parse-param {void *scanner}{module *mod} //  传入参数
+%lex-param {core_yyscan_t scanner}
+%parse-param {core_yyscan_t scanner}{module *mod} //  传入参数
 
 %define parse.trace
 %define parse.error verbose
+%name-prefix="module_yy"
 
 %{
 #include "module.h"
@@ -11,7 +12,7 @@
 #include "parser.h"
 #include "scanner.h"
 
-void yyerror (yyscan_t *locp, module *mod, char const *msg);
+void module_yyerror (YYLTYPE *locp, core_yyscan_t scanner, char const *msg);
 
 char colNameAttr[MAX_COLNAME_LENGTH];
 char colNameRelType[MAX_COLNAME_LENGTH * 4];
@@ -2016,7 +2017,7 @@ ColName:
 %%
 
 void 
-yyerror(yyscan_t *locp, module *mod, char const *msg) 
+module_yyerror(YYLTYPE *locp, core_yyscan_t scanner, char const *msg) 
 {
 	fprintf(stderr, "--> %s\n", msg);
 }

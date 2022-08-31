@@ -134,6 +134,9 @@ typedef struct core_yy_extra
   int last_loc;
 } core_yy_extra;
 
+core_yyscan_t module_scanner_create(const char *s);
+void module_scanner_destroy(core_yyscan_t scanner);
+
 typedef struct Node
 {
   NodeTag type;

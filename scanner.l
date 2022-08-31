@@ -29,6 +29,9 @@ static void strbuf_reset(strbuf *sb);
 static int _scan_errmsg(const char *msg, const core_yy_extra *extra);
 #define scan_errposition() _scan_errposition(yyextra.last_loc, &yyextra)
 static int _scan_errposition(const int location, const core_yy_extra *extra);
+extern int module_scanner_errmsg(const char *msg, core_yyscan_t *scanner);
+extern int module_scanner_errposition(const int location, core_yyscan_t *scanner);
+
 %}
 
 %%
@@ -109,6 +112,7 @@ FALSE   { yylval->intval = 0; return BOOL; }
 "/*"            {oldstate = YY_START; BEGIN COMMENT;}
 <COMMENT>"*/"   {BEGIN oldstate;}
 <COMMENT>.|\n   ;
+.               {module_scanner_errmsg("cypher error", yyscanner); exit(0);}
 
 %%
 
@@ -178,12 +182,13 @@ strbuf_reset(strbuf *sb)
 static int 
 _scan_errmsg(const char *msg, const core_yy_extra *extra)
 {
+    int ret;
     const char *t = extra->scan_buf + extra->last_loc;
 
     if (t[0] == YY_END_OF_BUFFER_CHAR)
-        return fprintf(stderr, "%s at end of input", msg);
+        return fprintf(stderr, "%s at end of input\n", msg);
     else
-        return fprintf(stderr, "%s at or near \"%s\"", msg, t);
+        return fprintf(stderr, "%s at or near \"%s\"\n", msg, t);
 }
 
 static int 

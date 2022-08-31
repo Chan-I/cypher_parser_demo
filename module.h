@@ -7,9 +7,11 @@
 typedef struct
 {
 	FILE *src;
+	int yyresult;
 	ReglQueryClause *regl;
 } module_yy_extra;
 
+module_yy_extra *raw_parser(char *src);
 char *print_module(module_yy_extra *mod);
 int parse_module(module_yy_extra *mod);
 module_yy_extra *new_module_from_file(const char *filename);

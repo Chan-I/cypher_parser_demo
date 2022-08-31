@@ -8,13 +8,13 @@ typedef struct
 {
 	FILE *src;
 	ReglQueryClause *regl;
-} module;
+} module_yy_extra;
 
-char *print_module(module *mod);
-int parse_module(module *mod);
-module *new_module_from_file(const char *filename);
-module *new_module_from_stdin(void);
-module *new_module_from_string(char *src);
-void delete_module(module *mod);
+char *print_module(module_yy_extra *mod);
+int parse_module(module_yy_extra *mod);
+module_yy_extra *new_module_from_file(const char *filename);
+module_yy_extra *new_module_from_stdin(void);
+module_yy_extra *new_module_from_string(char *src);
+void delete_module(module_yy_extra *mod);
 
 #endif // __MODULE_H

@@ -2,7 +2,7 @@
 
 int main(int argc, char **argv)
 {
-	module *mod;
+	module_yy_extra *mod;
 	int res;
 	char *sql = NULL;
 

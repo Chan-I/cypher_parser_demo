@@ -1,6 +1,6 @@
 %define api.pure full
 %lex-param {core_yyscan_t scanner}
-%parse-param {core_yyscan_t scanner}{module *mod} //  传入参数
+%parse-param {core_yyscan_t scanner}{module_yy_extra *mod} //  传入参数
 
 %define parse.trace
 %define parse.error verbose

@@ -110,6 +110,30 @@ typedef enum NodeTag
 
 typedef void *core_yyscan_t;
 
+typedef struct strbuf
+{
+  char *buffer;
+  int capacity;
+  int length;
+} strbuf;
+
+typedef struct core_yy_extra
+{
+  /**
+   * @brief     extra type for flex
+   *
+   */
+  strbuf literal_buf;
+
+  // for Unicode surrogate pair
+  unsigned int high_surrogate;
+  int start_cond;
+
+  // for the location of the current token and the actual position of it
+  const char *scan_buf;
+  int last_loc;
+} core_yy_extra;
+
 typedef struct Node
 {
   NodeTag type;

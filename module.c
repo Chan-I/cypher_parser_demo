@@ -2,31 +2,31 @@
 #include "parser.h"
 #include "scanner.h"
 
-module *
+module_yy_extra *
 new_module_from_file(const char *filename)
 {
-  module *mod = (module *)malloc(sizeof(module));
+  module_yy_extra *mod = (module_yy_extra *)malloc(sizeof(module_yy_extra));
   mod->src = fopen(filename, "r");
   return mod;
 }
 
-module *
+module_yy_extra *
 new_module_from_stdin(void)
 {
-  module *mod = (module *)malloc(sizeof(module));
+  module_yy_extra *mod = (module_yy_extra *)malloc(sizeof(module_yy_extra));
   mod->src = stdin;
   return mod;
 }
 
-module *
+module_yy_extra *
 new_module_from_string(char *src)
 {
-  module *mod = (module *)malloc(sizeof(module));
+  module_yy_extra *mod = (module_yy_extra *)malloc(sizeof(module_yy_extra));
   mod->src = fmemopen(src, strlen(src) + 1, "r");
   return mod;
 }
 
-int parse_module(module *mod)
+int parse_module(module_yy_extra *mod)
 {
   yyscan_t sc;
   int res;
@@ -43,7 +43,7 @@ int parse_module(module *mod)
 }
 
 char *
-print_module(module *mod)
+print_module(module_yy_extra *mod)
 {
 #if 0
   char *sql = malloc(8192 * 3); // TODO : 8192 ????
@@ -79,7 +79,7 @@ print_module(module *mod)
 #endif
 }
 
-void delete_module(module *mod)
+void delete_module(module_yy_extra *mod)
 {
 #if 0
   if (mod->rt != NULL)

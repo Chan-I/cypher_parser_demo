@@ -1,28 +1,20 @@
-# $Header: /home/johnl/flnb/code/RCS/Makefile.ch1,v 2.2 2009/11/08 02:52:21 johnl Exp $
-# Companion source code for "flex & bison", published by O'Reilly
-# Media, ISBN 978-0-596-15597-1
-# Copyright (c) 2009, Taughannock Networks. All rights reserved.
-# See the README file for license conditions and contact info.
-
-# programs in chapter 1
-CFLAGS:=-g -O0
-
-all:	test
-
-test:main.c  test.tab.o test.lex.o testfuncs.o
-	cc -g -O0 -o $@ $^ -lfl
-
-test.tab.c:test.y
-	bison -d $^
-
-test.lex.c:test.l
-	flex --header-file=test.lex.h -b -CF -p  -o $@ $^
-
-
 .PHONY: clean
 
-clean:
-	rm -f test \
-	*.lex.c *.lex.h *.tab.h *.tab.c \
-	*.output *.o *.backup
+CC := gcc
+OPTIONS := -Wmissing-prototypes -Wpointer-arith -Wendif-labels -Wmissing-format-attribute -Wformat-security -Wformat
+DEBUG := -g -O0
+CFLAGS := ${DEBUG} -U_YYDEBUG -D__YYEMIT ${OPTIONS}
 
+run: parser.o scanner.o ast.o print.o delete.o module.o main.o 
+	$(CC) ${CFLAGS} -g -o $@ $+ 
+
+clean:
+	rm -f run *.o parser.[ch] scanner.[ch] *.output .*.swp
+
+parser.o: scanner.c
+
+scanner.c: scanner.l
+	flex -d --header-file=scanner.h --outfile=$@ $^
+
+parser.c: parser.y
+	bison -Wno-deprecated -vd $^ -o $@

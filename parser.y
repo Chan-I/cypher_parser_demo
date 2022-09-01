@@ -1350,7 +1350,7 @@ IntegerLiteralPatternPart:
 			{
 				_emit("IntegerLiteral");
 				sprintf(colNameAttr,"%ld",$1);
-				printf("-----%ld\n",$1);
+				_emit("-----%ld\n",$1);
 				$$ = malloc(strlen(colNameAttr) * sizeof(char));
 				if (strlen(colNameAttr) <= MAX_COLNAME_LENGTH)
 					memcpy($$,colNameAttr,strlen(colNameAttr));

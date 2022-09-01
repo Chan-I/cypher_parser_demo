@@ -1,9 +1,14 @@
 .PHONY: clean
 
 CC := gcc
-OPTIONS := -Wmissing-prototypes -Wpointer-arith -Wendif-labels -Wmissing-format-attribute -Wformat-security -Wformat
+
+OPTIONS := -Wmissing-prototypes -Wpointer-arith \
+			-Wendif-labels -Wmissing-format-attribute \
+			-Wformat-security -Wformat
+
 DEBUG := -g -O0
-CFLAGS := ${DEBUG} -U_YYDEBUG -D__YYEMIT ${OPTIONS}
+
+CFLAGS := ${DEBUG} -U_YYDEBUG -U__YYEMIT -DUSE_PARSE_MODULE ${OPTIONS}
 
 run: parser.o scanner.o ast.o print.o delete.o module.o main.o 
 	$(CC) ${CFLAGS} -g -o $@ $+ 

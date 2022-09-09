@@ -133,6 +133,7 @@ typedef struct core_yy_extra
   // for the location of the current token and the actual position of it
   const char *scan_buf;
   int last_loc;
+  int end_loc;
 } core_yy_extra;
 
 core_yyscan_t module_scanner_create(const char *s);

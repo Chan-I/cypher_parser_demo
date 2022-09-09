@@ -3,51 +3,16 @@
 #include "scanner.h"
 
 module_yy_extra *
-new_module_from_file(const char *filename)
-{
-  module_yy_extra *mod = (module_yy_extra *)malloc(sizeof(module_yy_extra));
-  mod->src = fopen(filename, "r");
-  return mod;
-}
-
-module_yy_extra *
-new_module_from_stdin(void)
-{
-  module_yy_extra *mod = (module_yy_extra *)malloc(sizeof(module_yy_extra));
-  mod->src = stdin;
-  return mod;
-}
-
-module_yy_extra *
-new_module_from_string(char *src)
-{
-  module_yy_extra *mod = (module_yy_extra *)malloc(sizeof(module_yy_extra));
-  mod->src = fmemopen(src, strlen(src) + 1, "r");
-  return mod;
-}
-
-int parse_module(module_yy_extra *mod)
-{
-  yyscan_t sc;
-  int res;
-
-  module_yylex_init(&sc);
-  module_yyset_in(mod->src, sc);
-
-#ifdef _YYDEBUG
-  yydebug = 1;
-#endif
-
-  res = module_yyparse(sc, mod);
-  return res;
-}
-
-module_yy_extra *
 raw_parser(char *src)
 {
   module_yy_extra *extra;
   core_yyscan_t scanner;
 
+  if (src == NULL)
+  {
+    fprintf(stderr, "input of raw_parser CANNOT be NULL");
+    exit(0);
+  }
   scanner = module_scanner_create(src);
 
   extra = (module_yy_extra *)malloc(sizeof(module_yy_extra));

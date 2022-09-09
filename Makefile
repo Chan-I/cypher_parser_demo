@@ -8,7 +8,7 @@ OPTIONS := -Wmissing-prototypes -Wpointer-arith \
 
 DEBUG := -g -O0
 
-CFLAGS := ${DEBUG} -U_YYDEBUG -U__YYEMIT -DUSE_PARSE_MODULE ${OPTIONS}
+CFLAGS := ${DEBUG} -U_YYDEBUG -U__YYEMIT ${OPTIONS}
 
 run: parser.o scanner.o ast.o print.o delete.o module.o main.o 
 	$(CC) ${CFLAGS} -g -o $@ $+ 

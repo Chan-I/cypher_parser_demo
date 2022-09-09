@@ -22,6 +22,7 @@ int oldstate;
     do \
     { \
         yyextra.last_loc = yytext - yyextra.scan_buf; \
+        yyextra.end_loc = yyextra.last_loc +  strlen(yytext) - 1; \
     } while (0)
 #define get_location() (yyextra.last_loc)
 
@@ -192,27 +193,35 @@ _scan_errmsg(const char *msg, const core_yy_extra *extra)
 {
     int ret;
     const char *t = extra->scan_buf + extra->last_loc;
+    char * p = (char *)t;
+
+    while(p > extra->scan_buf)
+    {
+        if (*p == '\n') 
+            break;
+        p--;
+    }
 
     if (t[0] == YY_END_OF_BUFFER_CHAR)
     {
-        ret = fprintf(stderr, "%s at end of input\n", msg);
+        ret = fprintf(stderr, "\n%s at end of input\n", msg);
     }
     else
     {
-        ret = fprintf(stderr, "%s near   : \"%s\"\n"
-                              "%s cursor :  ", msg, extra->scan_buf, msg);
-        for(int i = 0; i < extra->last_loc; i++ )
-        {
-            if (extra->scan_buf[i] == ' ')
-                fprintf(stderr, " ");
-            else if (extra->scan_buf[i] == '\n')
-                fprintf(stderr, "\n");
-            else
-                fprintf(stderr, ".");
-        }      
-        fprintf(stderr,"↑\n"); 
-    }
+        ret = fprintf(stderr, "\n╭ %s near : \"%s\"\n", msg, p);
 
+        fprintf(stderr,"╰ Error Exists Here :  ");
+
+        for (int i = 0; i < ((p != extra->scan_buf) ? t - p++ : t - p);
+		    i++, fprintf(stderr, " "))
+		    ; 
+
+        for (int i = 0; i <= extra->end_loc - extra->last_loc; 
+            i++, fprintf(stderr, "↑"))
+            ;
+        fprintf(stderr, "\n"); 
+    }
+    return ret;
 }
 
 static int 

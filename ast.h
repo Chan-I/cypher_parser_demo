@@ -49,11 +49,12 @@
     a = NULL;                       \
   } while (0)
 
-#define ERROR(msg)                     \
-  do                                   \
-  {                                    \
-    module_yyerror(scanner, mod, msg); \
-    return 1;                          \
+#define ERROR(msg)                    \
+  do                                  \
+  {                                   \
+    fprintf(stderr, "ERROR:%s", msg); \
+    fflush(stderr);                   \
+    return 1;                         \
   } while (0)
 
 #ifdef __YYEMIT

@@ -7,8 +7,8 @@ int main(int argc, char **argv)
 	char *sql = NULL;
 
 	char *cypher = "MATCH (david {name: 'David'})--(otherPerson)-->() "
-				   "WITH otherPerson, count(*) AS foaf WHERE foaf > 1 "
-				   "RETURN otherPerson.name V;";
+				   "WITH otherPerson, count(*) ADS foaf WHERE foaf > 1 "
+				   "RETURN otherPerson.name;";
 
 	fprintf(stdout, "CypherParser=# %s\n\n", cypher);
 	fflush(stdout);

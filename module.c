@@ -2,8 +2,12 @@
 #include "parser.h"
 #include "scanner.h"
 
-module_yy_extra *
-raw_parser(char *src)
+int CPR_SUCCESSED(module_yy_extra *mod)
+{
+  return (!mod->yyresult || mod->yyresult == 2) ? 1 : 0;
+}
+
+module_yy_extra *raw_parser(char *src)
 {
   module_yy_extra *extra;
   core_yyscan_t scanner;

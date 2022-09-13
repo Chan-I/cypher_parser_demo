@@ -1,5 +1,22 @@
-# Cypher Example 
-```sql
+# Cypher Example
+
+一个用于练习flex 和bison的项目，仅涉及词法语法分析，将输入的语句解析成我自己定义的数据结构。
+
+所以核心的print_module是空的，没有做任何实现逻辑[主要还是懒。。。]
+
+如果对cypher做进一步的处理，可以完善print_module函数。甚至增加语法树重写函数等。
+
+A project for Flex-Bison practicing，as a result "print_module" is not supported at this time.
+
+Only parse Cypher query into my slef-define struct tree. No further feature。
+
+if U want to refine it , Just complite your own print_module function.
+
+## 参考资料
+
+《flex 和 bison》
+
+```cypher
 CALL db.labels() RETURN count(label) AS numLabels;
 CALL db.labels() YIELD * WHERE label = 'User' RETURN count(label) AS numLabels;
 CALL db.labels() YIELD asldkjf WHERE label = 'User' RETURN count(label) AS numLabels;

@@ -207,8 +207,6 @@ module_scanner_create(const char *s)
 void 
 module_scanner_destroy(core_yyscan_t scanner)
 {
-    core_yy_extra extra = module_yyget_extra(scanner);
-
     module_yylex_destroy(scanner);
 }
 

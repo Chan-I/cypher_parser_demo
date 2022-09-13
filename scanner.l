@@ -21,13 +21,13 @@ int oldstate;
 #define update_location() \
     do \
     { \
-        yyextra.last_loc = yytext - yyextra.scan_buf; \
-        yyextra.end_loc = yyextra.last_loc + strlen(yytext) - 1; \
+        yyextra.first_loc = yytext - yyextra.scan_buf; \
+        yyextra.last_loc = yyextra.first_loc + strlen(yytext) - 1; \
     } while (0)
-#define get_location() (yyextra.last_loc)
+#define get_location() (yyextra.first_loc)
 #define Return update_location(); return
 #define scan_errmsg(msg) _scan_errmsg(msg, &yyextra)
-#define scan_errposition() _scan_errposition(yyextra.last_loc, &yyextra)
+#define scan_errposition() _scan_errposition(yyextra.first_loc, &yyextra)
 
 static void yyextra_init(core_yy_extra *extra, char *buf);
 static int _scan_errmsg(const char *msg, const core_yy_extra *extra);
@@ -51,7 +51,7 @@ COUNT       { Return COUNT;      }
 CREATE      { Return CREATE;     }
 DELETE      { Return DELETE;     }
 DESC        { Return DESC;       }
-DISTINCT    { Return DISTINCT;   } 
+DISTINCT    { Return DISTINCT;   }
 ENDS        { Return ENDS;       }
 EXISTS      { Return EXISTS;     }
 IN          { Return IN;         }
@@ -125,15 +125,15 @@ yyextra_init(core_yy_extra *extra, char *buf)
     extra->high_surrogate = 0;
     extra->start_cond = INITIAL;
     extra->scan_buf = buf;
+    extra->first_loc = 0;
     extra->last_loc = 0;
-    extra->end_loc = 0;
 }
 
 static int 
 _scan_errmsg(const char *msg, const core_yy_extra *extra)
 {
     int ret, loop;
-    const char *t = extra->scan_buf + extra->last_loc;
+    const char *t = extra->scan_buf + extra->first_loc;
     char * p = (char *)t;
 
     while(p > extra->scan_buf)
@@ -156,7 +156,7 @@ _scan_errmsg(const char *msg, const core_yy_extra *extra)
 
         for (int i = 0; i < loop; i++, fprintf(stderr, " ")); 
 
-        for (int i = 0; i <= extra->end_loc - extra->last_loc; 
+        for (int i = 0; i <= extra->last_loc - extra->first_loc; 
             i++, fprintf(stderr, "↑"))
             ;
         fprintf(stderr, " - Error Here!\n"); 

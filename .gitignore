@@ -3,6 +3,7 @@
 *.output
 *.tab.c
 *.tab.h
+*.backup
 .vscode/
 scanner.[ch]
 parser.[ch]

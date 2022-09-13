@@ -10,7 +10,6 @@
 #include <stdint.h>
 
 #define MAX_COLNAME_LENGTH 128
-#define YYLTYPE int
 
 #define FREE(a) \
   do            \

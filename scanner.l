@@ -25,11 +25,12 @@ int oldstate;
         yyextra.end_loc = yyextra.last_loc + strlen(yytext) - 1; \
     } while (0)
 #define get_location() (yyextra.last_loc)
+#define Return update_location(); return
+#define scan_errmsg(msg) _scan_errmsg(msg, &yyextra)
+#define scan_errposition() _scan_errposition(yyextra.last_loc, &yyextra)
 
 static void yyextra_init(core_yy_extra *extra, char *buf);
-#define scan_errmsg(msg) _scan_errmsg(msg, &yyextra)
 static int _scan_errmsg(const char *msg, const core_yy_extra *extra);
-#define scan_errposition() _scan_errposition(yyextra.last_loc, &yyextra)
 static int _scan_errposition(const int location, const core_yy_extra *extra);
 extern int module_scanner_errmsg(const char *msg, core_yyscan_t *scanner);
 extern int module_scanner_errposition(const int location, core_yyscan_t *scanner);
@@ -38,72 +39,72 @@ extern int module_scanner_errposition(const int location, core_yyscan_t *scanner
 
 %%
 
-ALL         { update_location(); return ALL;        }
-AND         { update_location(); return AND;        }
-ANY         { update_location(); return ANY;        }
-AS          { update_location(); return AS;         }
-ASC         { update_location(); return ASC;        }
-BY          { update_location(); return BY;         }
-CALL        { update_location(); return CALL;       }
-CONTAINS    { update_location(); return CONTAINS;   }
-COUNT       { update_location(); return COUNT;      }
-CREATE      { update_location(); return CREATE;     }
-DELETE      { update_location(); return DELETE;     }
-DESC        { update_location(); return DESC;       }
-DISTINCT    { update_location(); return DISTINCT;   } 
-ENDS        { update_location(); return ENDS;       }
-EXISTS      { update_location(); return EXISTS;     }
-IN          { update_location(); return IN;         }
-IS          { update_location(); return IS;         }
-LIMIT       { update_location(); return LIMIT;      }
-MATCH       { update_location(); return MATCH;      }
-MERGE       { update_location(); return MERGE;      }
-NOT         { update_location(); return NOT;        }
-NULL        { update_location(); return NULLX;      }
-ON          { update_location(); return ON;         }
-OR          { update_location(); return OR;         }
-ORDER       { update_location(); return ORDER;      }
-REMOVE      { update_location(); return REMOVE;     }
-RETURN      { update_location(); return RETURN;     }
-SET         { update_location(); return SET;        }
-UNION       { update_location(); return UNION;      }
-UNWIND      { update_location(); return UNWIND;     }
-WHERE       { update_location(); return WHERE;      }
-WITH        { update_location(); return WITH;       }
-XOR         { update_location(); return XOR;        }
-YIELD       { update_location(); return YIELD;      }
-TRUE    { update_location(); yylval->intval = 1; return BOOL; }
-FALSE   { update_location(); yylval->intval = 0; return BOOL; }
+ALL         { Return ALL;        }
+AND         { Return AND;        }
+ANY         { Return ANY;        }
+AS          { Return AS;         }
+ASC         { Return ASC;        }
+BY          { Return BY;         }
+CALL        { Return CALL;       }
+CONTAINS    { Return CONTAINS;   }
+COUNT       { Return COUNT;      }
+CREATE      { Return CREATE;     }
+DELETE      { Return DELETE;     }
+DESC        { Return DESC;       }
+DISTINCT    { Return DISTINCT;   } 
+ENDS        { Return ENDS;       }
+EXISTS      { Return EXISTS;     }
+IN          { Return IN;         }
+IS          { Return IS;         }
+LIMIT       { Return LIMIT;      }
+MATCH       { Return MATCH;      }
+MERGE       { Return MERGE;      }
+NOT         { Return NOT;        }
+NULL        { Return NULLX;      }
+ON          { Return ON;         }
+OR          { Return OR;         }
+ORDER       { Return ORDER;      }
+REMOVE      { Return REMOVE;     }
+RETURN      { Return RETURN;     }
+SET         { Return SET;        }
+UNION       { Return UNION;      }
+UNWIND      { Return UNWIND;     }
+WHERE       { Return WHERE;      }
+WITH        { Return WITH;       }
+XOR         { Return XOR;        }
+YIELD       { Return YIELD;      }
+TRUE    { yylval->intval = 1; Return BOOL; }
+FALSE   { yylval->intval = 0; Return BOOL; }
 
 
-[A-Za-z][A-Za-z0-9_]*	{ update_location(); yylval->strval = strdup(yytext); return NAME; }
+[A-Za-z][A-Za-z0-9_]*	{ yylval->strval = strdup(yytext); Return NAME; }
 
    /* numbers */ 
-[0-9]*	{ update_location(); yylval->intval = atoi(yytext); return INTNUM; }
+[0-9]*	{ yylval->intval = atoi(yytext); Return INTNUM; }
 [0-9]+"."[0-9]+([Ee][-+]?[0-9]+)?	|
-"."[0-9]+([Ee][-+]?[0-9]+)?	{ update_location(); yylval->floatval = atof(yytext) ;return APPROXNUM; }
+"."[0-9]+([Ee][-+]?[0-9]+)?	{ yylval->floatval = atof(yytext); Return APPROXNUM; }
 
 
 
  /* string*/
 '(\\.|''|[^'\n])*'  |
-\"(\\.|\"\"|[^"\n])*\"  { update_location(); yylval->strval = strdup(yytext); return STRING; }
+\"(\\.|\"\"|[^"\n])*\"  { yylval->strval = strdup(yytext); Return STRING; }
 
 
-"="     { update_location(); yylval->subtok = 4; return COMPARISON; }
-">="    { update_location(); yylval->subtok = 6; return COMPARISON; }
-">"     { update_location(); yylval->subtok = 2; return COMPARISON; }
-"<="    { update_location(); yylval->subtok = 5; return COMPARISON; }
-"<"     { update_location(); yylval->subtok = 1; return COMPARISON; }
-"<>"    { update_location(); yylval->subtok = 3; return COMPARISON; }
+"="     { yylval->subtok = 4; Return COMPARISON; }
+">="    { yylval->subtok = 6; Return COMPARISON; }
+">"     { yylval->subtok = 2; Return COMPARISON; }
+"<="    { yylval->subtok = 5; Return COMPARISON; }
+"<"     { yylval->subtok = 1; Return COMPARISON; }
+"<>"    { yylval->subtok = 3; Return COMPARISON; }
 
-"->"    { update_location(); yylval->strval = strdup(yytext); return RIGHTARROW;}
-"<-"    { update_location(); yylval->strval = strdup(yytext); return LEFTARROW;}
-"+="    { update_location(); yylval->strval = strdup(yytext); return PLUSEQUL;}
+"->"    { yylval->strval = strdup(yytext); Return RIGHTARROW; }
+"<-"    { yylval->strval = strdup(yytext); Return LEFTARROW;  }
+"+="    { yylval->strval = strdup(yytext); Return PLUSEQUL;   }
 
-[-+*/%(){}.:;,\[\]<>]  { update_location(); return  yytext[0]; }
+[-+*/%(){}.:;,\[\]<>]  { Return  yytext[0]; }
 
-".."    { update_location(); yylval->strval = strdup(yytext); return PPOINT; }
+".."    { yylval->strval = strdup(yytext); Return PPOINT; }
 
 [ \t\r\f]       ;
 [\n]			;
@@ -111,10 +112,10 @@ FALSE   { update_location(); yylval->intval = 0; return BOOL; }
     /* comments */
 "#"[^\n]*	;
 "//".*	        ;
-"/*"            { update_location(); oldstate = YY_START; BEGIN COMMENT;}
-<COMMENT>"*/"   { update_location(); BEGIN oldstate;}
+"/*"            { oldstate = YY_START; BEGIN COMMENT; }
+<COMMENT>"*/"   { BEGIN oldstate; }
 <COMMENT>.|\n   ;
-.               { module_scanner_errmsg("cypher error", yyscanner); exit(0);}
+.               { module_scanner_errmsg("cypher error", yyscanner); exit(0); }
 
 %%
 

@@ -111,20 +111,8 @@ typedef enum NodeTag
 
 typedef void *core_yyscan_t;
 
-typedef struct strbuf
-{
-  char *buffer;
-  int capacity;
-  int length;
-} strbuf;
-
 typedef struct core_yy_extra
 {
-  /**
-   * @brief     extra type for flex
-   *
-   */
-  strbuf literal_buf;
 
   // for Unicode surrogate pair
   unsigned int high_surrogate;

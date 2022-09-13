@@ -24,7 +24,7 @@ int main(int argc, char **argv)
 	 *
 	 */
 
-	char *cypher = "MATCH "
+	char *cypher = "MATCH \n"
 				   "(david {name: 'David'})--(otherPerson)-->() "
 				   "WITHE otherPerson, count(*) AS foaf WHERE foaf > 1 "
 				   "RETURN otherPerson.name;";

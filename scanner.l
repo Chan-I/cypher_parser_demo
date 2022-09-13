@@ -22,18 +22,11 @@ int oldstate;
     do \
     { \
         yyextra.last_loc = yytext - yyextra.scan_buf; \
-        yyextra.end_loc = yyextra.last_loc +  strlen(yytext) - 1; \
+        yyextra.end_loc = yyextra.last_loc + strlen(yytext) - 1; \
     } while (0)
 #define get_location() (yyextra.last_loc)
 
-static void strbuf_init(strbuf *sb, int capacity);
-static void strbuf_cleanup(strbuf *sb);
-static void strbuf_append_buf(strbuf *sb, const char *b, const int len);
-static void strbuf_append_char(strbuf *sb, const char c);
-static void strbuf_ensure_capacity(strbuf *sb, int len);
-static const char *strbuf_get_str(strbuf *sb);
-static void strbuf_reset(strbuf *sb);
-
+static void yyextra_init(core_yy_extra *extra, char *buf);
 #define scan_errmsg(msg) _scan_errmsg(msg, &yyextra)
 static int _scan_errmsg(const char *msg, const core_yy_extra *extra);
 #define scan_errposition() _scan_errposition(yyextra.last_loc, &yyextra)
@@ -125,73 +118,20 @@ FALSE   { update_location(); yylval->intval = 0; return BOOL; }
 
 %%
 
-static void 
-strbuf_init(strbuf *sb, int capacity)
+static void
+yyextra_init(core_yy_extra *extra, char *buf)
 {
-    sb->buffer = malloc(capacity);
-    sb->capacity = capacity;
-    sb->length = 0;
-}
-
-static void 
-strbuf_cleanup(strbuf *sb)
-{
-    if (sb->buffer)
-        free(sb->buffer);
-}
-
-static void 
-strbuf_append_buf(strbuf *sb, const char *b, const int len)
-{
-    strbuf_ensure_capacity(sb, sb->length + len);
-    memcpy(sb->buffer + sb->length, b, len);
-    sb->length += len;
-}
-
-static void 
-strbuf_append_char(strbuf *sb, const char c)
-{
-    strbuf_ensure_capacity(sb, sb->length + 1);
-    sb->buffer[sb->length] = c;
-    sb->length += 1;
-}
-
-/*
- * len cannot be greater than MaxAllocSize because ReadCommand() reads
- * a message and places the message body in StringInfo.
- */
-static void 
-strbuf_ensure_capacity(strbuf *sb, int len)
-{
-    // consider additional 1 byte for the last '\0' character
-    if (len < sb->capacity)
-        return;
-
-    do
-    {
-        sb->capacity *= 2;
-    } while (sb->capacity <= len);
-
-    sb->buffer = realloc(sb->buffer, sb->capacity);
-}
-
-static const char *
-strbuf_get_str(strbuf *sb)
-{
-    sb->buffer[sb->length] = '\0';
-    return sb->buffer;
-}
-
-static void 
-strbuf_reset(strbuf *sb)
-{
-    sb->length = 0;
+    extra->high_surrogate = 0;
+    extra->start_cond = INITIAL;
+    extra->scan_buf = buf;
+    extra->last_loc = 0;
+    extra->end_loc = 0;
 }
 
 static int 
 _scan_errmsg(const char *msg, const core_yy_extra *extra)
 {
-    int ret;
+    int ret, loop;
     const char *t = extra->scan_buf + extra->last_loc;
     char * p = (char *)t;
 
@@ -201,6 +141,8 @@ _scan_errmsg(const char *msg, const core_yy_extra *extra)
             break;
         p--;
     }
+    
+    loop = ((p != extra->scan_buf) ? t - ++p : t - p);
 
     if (t[0] == YY_END_OF_BUFFER_CHAR)
     {
@@ -208,18 +150,15 @@ _scan_errmsg(const char *msg, const core_yy_extra *extra)
     }
     else
     {
-        ret = fprintf(stderr, "\n╭ %s near : \"%s\"\n", msg, p);
+        ret = fprintf(stderr, "\n╭ %s near : \"%s\"\n"
+                              "╰ Error Exists Here :  ", msg, p);
 
-        fprintf(stderr,"╰ Error Exists Here :  ");
-
-        for (int i = 0; i < ((p != extra->scan_buf) ? t - p++ : t - p);
-		    i++, fprintf(stderr, " "))
-		    ; 
+        for (int i = 0; i < loop; i++, fprintf(stderr, " ")); 
 
         for (int i = 0; i <= extra->end_loc - extra->last_loc; 
             i++, fprintf(stderr, "↑"))
             ;
-        fprintf(stderr, "\n"); 
+        fprintf(stderr, " - Error Here!\n"); 
     }
     return ret;
 }
@@ -246,7 +185,6 @@ module_scanner_create(const char *s)
     char *buf;
     yyscan_t yyscanner;
     core_yy_extra extra;
-    int ret;
 
     // The last two YY_END_OF_BUFFER_CHAR are required by flex.
     len = strlen(s);
@@ -255,19 +193,11 @@ module_scanner_create(const char *s)
     buf[len] = YY_END_OF_BUFFER_CHAR;
     buf[len + 1] = YY_END_OF_BUFFER_CHAR;
 
-    ret = module_yylex_init(&yyscanner);
-    if (ret)
+    if (module_yylex_init(&yyscanner))
         fprintf(stderr, "module_yylex_init() failed: %m");
 
-    extra.high_surrogate = 0;
-    extra.start_cond = INITIAL;
-    extra.scan_buf = buf;
-    extra.last_loc = 0;
-    strbuf_init(&extra.literal_buf, strlen(buf));
-    strncpy(extra.literal_buf.buffer, buf, strlen(buf));
-
+    yyextra_init(&extra, buf);
     module_yyset_extra(extra, yyscanner);
-
     module_yy_scan_buffer(buf, len + 2, yyscanner);
 
     return yyscanner;
@@ -276,10 +206,7 @@ module_scanner_create(const char *s)
 void 
 module_scanner_destroy(core_yyscan_t scanner)
 {
-    core_yy_extra extra;
-
-    extra = module_yyget_extra(scanner);
-    strbuf_cleanup(&extra.literal_buf);
+    core_yy_extra extra = module_yyget_extra(scanner);
 
     module_yylex_destroy(scanner);
 }
@@ -287,9 +214,7 @@ module_scanner_destroy(core_yyscan_t scanner)
 int 
 module_scanner_errmsg(const char *msg, core_yyscan_t *scanner)
 {
-    core_yy_extra extra;
-
-    extra = module_yyget_extra(scanner);
+    core_yy_extra extra = module_yyget_extra(scanner);
 
     return _scan_errmsg(msg, &extra);
 }
@@ -297,9 +222,7 @@ module_scanner_errmsg(const char *msg, core_yyscan_t *scanner)
 int 
 module_scanner_errposition(const int location, core_yyscan_t *scanner)
 {
-    core_yy_extra extra;
-
-    extra = module_yyget_extra(scanner);
+    core_yy_extra extra = module_yyget_extra(scanner);
 
     return _scan_errposition(location, &extra);
 }

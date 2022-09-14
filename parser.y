@@ -101,21 +101,21 @@ char attrNum[MAX_COLNAME_LENGTH];
 %left '.'
 
 
-%token <keyword> ALL AND ANY AS ASC 
-%token <keyword> BY 
+%token <keyword> ALL AND ANY AS ASC
+%token <keyword> BY
 %token <keyword> CALL CONTAINS COUNT CREATE
-%token <keyword> DELETE DESC DISTINCT 
-%token <keyword> ENDS EOL EXISTS 
-%token <keyword> IN IS 
-%token <keyword> LIMIT 
-%token <keyword> MATCH MERGE 
-%token <keyword> NOT NULLX 
-%token <keyword> ON OR ORDER 
-%token <keyword> REMOVE RETURN 
-%token <keyword> SET 
+%token <keyword> DELETE DESC DISTINCT
+%token <keyword> ENDS EOL EXISTS
+%token <keyword> IN IS
+%token <keyword> LIMIT
+%token <keyword> MATCH MERGE
+%token <keyword> NOT NULLX
+%token <keyword> ON OR ORDER
+%token <keyword> REMOVE RETURN
+%token <keyword> SET
 %token <keyword> UNION UNWIND
-%token <keyword> WHERE WITH 
-%token <keyword> XOR 
+%token <keyword> WHERE WITH
+%token <keyword> XOR
 %token <keyword> YIELD
 
 

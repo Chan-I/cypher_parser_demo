@@ -110,7 +110,7 @@ FALSE   { yylval->intval = 0; Return BOOL; }
 [\n]			;
 
     /* comments */
-"#"[^\n]*	;
+"#"[^\n]*	    ;
 "//".*	        ;
 "/*"            { oldstate = YY_START; BEGIN COMMENT; }
 <COMMENT>"*/"   { BEGIN oldstate; }
@@ -151,15 +151,15 @@ _scan_errmsg(const char *msg, const core_yy_extra *extra)
     }
     else
     {
-        ret = fprintf(stderr, "\n╭ %s near : \"%s\"\n"
-                              "╰ Error Exists Here :  ", msg, p);
+        ret = fprintf(stderr, "\n\033[31merror: \033[0mlocation of %s was here : \n\t%s\n"
+                              "\t", msg, p);
 
         for (int i = 0; i < loop; i++, fprintf(stderr, " ")); 
 
         for (int i = 0; i <= extra->last_loc - extra->first_loc; 
-            i++, fprintf(stderr, "↑"))
+            i++, fprintf(stderr, "\033[31m↑"))
             ;
-        fprintf(stderr, " - Error Here!\n"); 
+        fprintf(stderr, "\033[31m - Error Here!\n"); 
     }
     return ret;
 }

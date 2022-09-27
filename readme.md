@@ -10,7 +10,34 @@ A project for Flex-Bison practicing，as a result "print_module" is not supporte
 
 Only parse Cypher query into my slef-define struct tree. No further feature。
 
-if U want to refine it , Just complite your own print_module function.
+if U want to refine it , Just complete your own print_module function.
+
+## How To Run
+```shell
+$ make
+bison -Wno-deprecated -vd parser.y -o parser.c
+flex -b -CF -p -p --header-file=scanner.h --outfile=scanner.c scanner.l
+%option yylineno entails a performance penalty ONLY on rules that can match newline characters
+gcc -g -O0 -U_YYDEBUG -U__YYEMIT -Wmissing-prototypes -Wpointer-arith -Wendif-labels -Wmissing-format-attribute -Wformat-security -Wformat   -c -o parser.o parser.c
+gcc -g -O0 -U_YYDEBUG -U__YYEMIT -Wmissing-prototypes -Wpointer-arith -Wendif-labels -Wmissing-format-attribute -Wformat-security -Wformat   -c -o scanner.o scanner.c
+gcc -g -O0 -U_YYDEBUG -U__YYEMIT -Wmissing-prototypes -Wpointer-arith -Wendif-labels -Wmissing-format-attribute -Wformat-security -Wformat   -c -o ast.o ast.c
+gcc -g -O0 -U_YYDEBUG -U__YYEMIT -Wmissing-prototypes -Wpointer-arith -Wendif-labels -Wmissing-format-attribute -Wformat-security -Wformat   -c -o print.o print.c
+gcc -g -O0 -U_YYDEBUG -U__YYEMIT -Wmissing-prototypes -Wpointer-arith -Wendif-labels -Wmissing-format-attribute -Wformat-security -Wformat   -c -o delete.o delete.c
+gcc -g -O0 -U_YYDEBUG -U__YYEMIT -Wmissing-prototypes -Wpointer-arith -Wendif-labels -Wmissing-format-attribute -Wformat-security -Wformat   -c -o module.o module.c
+gcc -g -O0 -U_YYDEBUG -U__YYEMIT -Wmissing-prototypes -Wpointer-arith -Wendif-labels -Wmissing-format-attribute -Wformat-security -Wformat   -c -o main.o main.c
+gcc -g -O0 -U_YYDEBUG -U__YYEMIT -Wmissing-prototypes -Wpointer-arith -Wendif-labels -Wmissing-format-attribute -Wformat-security -Wformat -g -o run parser.o scanner.o ast.o print.o delete.o module.o main.o
+```
+```shell
+$ ./run 
+CypherParser=# MATCH (david {name: 'David'})--(otherPerson)-->() WITHE otherPerson, count(*) AS foaf WHERE foaf > 1 RETURN otherPerson.name;
+
+
+error: location of cypher error was here : 
+	MATCH (david {name: 'David'})--(otherPerson)-->() WITHE
+	                                                  ↑↑↑↑↑ - Error Here!
+
+
+```
 
 ## 参考资料
 

@@ -1,14 +1,11 @@
 %define api.pure full
-%lex-param {core_yyscan_t scanner}
-%parse-param {core_yyscan_t scanner}{module_yy_extra *mod} //  传入参数
-
 %define parse.trace
 %define parse.error verbose
 %name-prefix="module_yy"
+%lex-param {core_yyscan_t scanner}
+%parse-param {core_yyscan_t scanner}{module_yy_extra *mod} //  传入参数
 
 %{
-#include "module.h"
-#include "ast.h"
 #include "parser.h"
 #include "scanner.h"
 
@@ -26,6 +23,7 @@ char attrNum[MAX_COLNAME_LENGTH];
 #include "module.h"
 #include "ast.h"
 }
+
 %union 
 {
 	/* type for keywords*/
@@ -78,29 +76,6 @@ char attrNum[MAX_COLNAME_LENGTH];
 	YieldStmtClause			 *ydstmtcls;
 } /* Generate YYSTYPE from these types:  */
 
-%token <intval> INTNUM
-%token <intval> BOOL
-%token <floatval> APPROXNUM
-%token <strval> NAME
-%token <strval> STRING
-%token <strval> PPOINT
-%token <strval> RIGHTARROW
-%token <strval> LEFTARROW
-%token <strval> PLUSEQUL
-
-
-%left OR
-%left XOR
-%left AND
-%left NOT
-%left <subtok> COMPARISON
-%left '+' '-'
-%left '*' '/' '%'
-%left '[' ']'
-%left '(' ')'
-%left '.'
-
-
 %token <keyword> ALL AND ANY AS ASC
 %token <keyword> BY
 %token <keyword> CALL CONTAINS COUNT CREATE
@@ -118,6 +93,26 @@ char attrNum[MAX_COLNAME_LENGTH];
 %token <keyword> XOR
 %token <keyword> YIELD
 
+%token <intval> INTNUM
+%token <intval> BOOL
+%token <floatval> APPROXNUM
+%token <strval> NAME
+%token <strval> STRING
+%token <strval> PPOINT
+%token <strval> RIGHTARROW
+%token <strval> LEFTARROW
+%token <strval> PLUSEQUL
+
+%left OR
+%left XOR
+%left AND
+%left NOT
+%left <subtok> COMPARISON
+%left '+' '-'
+%left '*' '/' '%'
+%left '[' ']'
+%left '(' ')'
+%left '.'
 
 %type <annoyptn> 		AnonymousPatternPart PatternElement 
 %type <anyExpr> 		FilterExpression
@@ -140,7 +135,6 @@ char attrNum[MAX_COLNAME_LENGTH];
 			 			SetClause StringList 
 %type <ltrlType> 		Literal
 %type <maplit> 			PropertiesPattern MapLiteralClause
-%type <mod> 			sexps
 %type <mchstmtcls> 		MatchClause
 %type <mgstexp>			MergeClause
 %type <mtptstmtclslp> 	MultiPartQuery

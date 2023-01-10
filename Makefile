@@ -21,7 +21,7 @@ clean:
 parser.o: scanner.c
 
 scanner.c: scanner.l
-	flex -b -CF -p -p --header-file=scanner.h --outfile=$@ $^
+	flex -b -CF -p --header-file=scanner.h --outfile=$@ $^
 
 parser.c: parser.y
 	bison -Wno-deprecated -vd $^ -o $@

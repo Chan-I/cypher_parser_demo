@@ -9,7 +9,6 @@ int oldstate;
 %option nounput
 %option noyywrap
 %option reentrant
-%option yylineno
 %option prefix="module_yy"
 %option extra-type="core_yy_extra"
 

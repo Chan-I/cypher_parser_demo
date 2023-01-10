@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdint.h>
+#include <inttypes.h>
 
 #define MAX_COLNAME_LENGTH 128
 

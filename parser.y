@@ -1239,14 +1239,17 @@ RelationshipTypePattern:
 		| ':' RelTypeName RelTypeNamePattern    
 			{	
 				_emit(": RelTypeName RelTypeNamePattern");
+                memset(colNameRelType, 0x00, sizeof(colNameRelType));
 				if ($3 == NULL)
 				{
-					$$ = (char *)malloc(strlen($2));
+					$$ = (char *)malloc(strlen($2) + 1);
+                    memset($$, 0x00, strlen($2) + 1);
 					sprintf(colNameRelType,"%s",$2);
 				}
 				else
 				{
-					$$ = (char *)malloc(strlen($2) + strlen($3));
+					$$ = (char *)malloc(strlen($2) + strlen($3) + 1);
+                    memset($$, 0x00, strlen($2) + strlen($3) + 1);
 					sprintf(colNameRelType,":%s %s",$2,$3);
 				}
 				if (strlen(colNameRelType) <= MAX_COLNAME_LENGTH)
@@ -1264,6 +1267,7 @@ RelTypeNamePattern:
 		| '|' RelTypeName           
 			{
 				_emit("| RelTypeName");
+				memset(colNameAttr,0,MAX_COLNAME_LENGTH);
 				sprintf(colNameAttr,"|%s", $2);
 				if (strlen(colNameAttr) <= MAX_COLNAME_LENGTH)
 					memcpy($$,colNameAttr,strlen(colNameAttr));
@@ -1274,6 +1278,7 @@ RelTypeNamePattern:
 		| '|' ':' RelTypeName       
 			{	
 				_emit("| : RelTypeName");
+                memset(colNameAttr, 0x00, MAX_COLNAME_LENGTH);
 				sprintf(colNameAttr,"|:%s", $3);
 				if (strlen(colNameAttr) <= MAX_COLNAME_LENGTH)
 					memcpy($$,colNameAttr,strlen(colNameAttr));
@@ -1326,13 +1331,14 @@ IntegerLiteralColonPatternPart:
 		| PPOINT IntegerLiteralPatternPart          
 			{
 				_emit(".. IntegerLiteralPatternPart");
+				memset(colNameAttr,0,strlen(colNameAttr));
 				sprintf(colNameAttr,"%s%s",$1,$2);
 				$$ = malloc(strlen(colNameAttr) * sizeof(char));
+                memset($$, 0x00, strlen(colNameAttr));
 				if (strlen(colNameAttr) <= MAX_COLNAME_LENGTH)
 					memcpy($$,colNameAttr,strlen(colNameAttr));
 				else
 					ERROR("colName is too long!");
-				memset(colNameAttr,0,strlen(colNameAttr));
 			}
 	;
 
@@ -1343,14 +1349,15 @@ IntegerLiteralPatternPart:
 		| IntegerLiteral                            
 			{
 				_emit("IntegerLiteral");
+				memset(colNameAttr,0,strlen(colNameAttr));
 				sprintf(colNameAttr,"%" PRId64,$1);
 				_emit("-----%ld\n",$1);
 				$$ = malloc(strlen(colNameAttr) * sizeof(char));
+                memset($$, 0x00, strlen(colNameAttr));
 				if (strlen(colNameAttr) <= MAX_COLNAME_LENGTH)
 					memcpy($$,colNameAttr,strlen(colNameAttr));
 				else
 					ERROR("colName is too long!");
-				memset(colNameAttr,0,strlen(colNameAttr));
 			}
 	;
 
@@ -1669,38 +1676,41 @@ FuncOpt:
 		NAME '(' ColName ')'         /* min(a.id) or func(a.id) */         
 			{
 				_emit("%s(",$1);_emit(")");
+				memset(colNameAttr,0,MAX_COLNAME_LENGTH);
 				sprintf(colNameAttr,"%s(%s)",$1, $3);
 				$$ = (char *)malloc(strlen(colNameAttr) * sizeof(char));
+                memset($$, 0x00, strlen(colNameAttr));
 				if (strlen(colNameAttr) <= MAX_COLNAME_LENGTH)
 					memcpy($$, colNameAttr, strlen(colNameAttr));
 				else
 					ERROR("colName is too long!");
-				memset(colNameAttr,0,MAX_COLNAME_LENGTH);
 			}
 		| EXISTS '(' ColName ')'    
 			{	/* exists(a.id) */ 
 				_emit("EXISTS");
+				memset(colNameAttr,0,MAX_COLNAME_LENGTH);
 				sprintf(colNameAttr,"EXISTS(%s)",$3);
 				$$ = (char *)malloc(strlen(colNameAttr) * sizeof(char));
+                memset($$, 0x00, strlen(colNameAttr));
 				if (strlen(colNameAttr) <= MAX_COLNAME_LENGTH)
 					memcpy($$, colNameAttr, strlen(colNameAttr));
 				else
 					ERROR("colName is too long!");
-				memset(colNameAttr,0,MAX_COLNAME_LENGTH);
 			} 
 		| COUNT '(' DistinctOpt ColName ')'    /* count(a.id) */     	
 			{
 				_emit("COUNT");
+				memset(colNameAttr,0,MAX_COLNAME_LENGTH);
 				if ($3 == 1)
 					sprintf(colNameAttr,"COUNT(DISTINCT %s)",$4);
 				else
 					sprintf(colNameAttr,"COUNT(%s)",$4);
 				$$ = (char *)malloc(strlen(colNameAttr) * sizeof(char));
+                memset($$, 0x00, strlen(colNameAttr));
 				if (strlen(colNameAttr) <= MAX_COLNAME_LENGTH)
 					memcpy($$, colNameAttr, strlen(colNameAttr));
 				else	
 					ERROR("colName is too long!");
-				memset(colNameAttr,0,MAX_COLNAME_LENGTH);
 			}
 	;
 
@@ -1986,8 +1996,20 @@ LimitClause:/* no limit */ 				{ $$ = -1; }
 		| LIMIT INTNUM  				{ $$ = $2; }
 	;
 
-NumberLiteral:INTNUM        			{ sprintf(attrNum,"%d",$1); $$ = attrNum; }
-		| APPROXNUM                 	{ sprintf(attrNum,"%f",$1); $$ = attrNum; }
+NumberLiteral:INTNUM        			{ 
+                                            memset(attrNum, 0x00, sizeof(attrNum));
+                                            sprintf(attrNum,"%d",$1);
+                                            $$ = malloc(sizeof(attrNum)) + 1;
+                                            memset($$, 0x00, sizeof(attrNum) + 1);
+                                            memcpy($$, attrNum, sizeof(attrNum));
+                                        }
+		| APPROXNUM                 	{
+                                            memset(attrNum, 0x00, sizeof(attrNum));
+                                            sprintf(attrNum,"%f",$1);
+                                            $$ = malloc(sizeof(attrNum)) + 1;
+                                            memset($$, 0x00, sizeof(attrNum) + 1);
+                                            memcpy($$, attrNum, sizeof(attrNum));
+                                        }
 	;
 
 ColName:

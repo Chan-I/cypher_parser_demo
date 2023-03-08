@@ -16,6 +16,9 @@ extern int module_scanner_errposition(const int location, core_yyscan_t *scanner
 char colNameAttr[MAX_COLNAME_LENGTH];
 char colNameRelType[MAX_COLNAME_LENGTH * 4];
 char attrNum[MAX_COLNAME_LENGTH];
+#ifdef _YYDEBUG
+int yydebug = 1;
+#endif
 %}
 
 %code requires

@@ -1999,14 +1999,14 @@ LimitClause:/* no limit */ 				{ $$ = -1; }
 NumberLiteral:INTNUM        			{ 
                                             memset(attrNum, 0x00, sizeof(attrNum));
                                             sprintf(attrNum,"%d",$1);
-                                            $$ = malloc(sizeof(attrNum)) + 1;
+                                            $$ = malloc(sizeof(attrNum) + 1);
                                             memset($$, 0x00, sizeof(attrNum) + 1);
                                             memcpy($$, attrNum, sizeof(attrNum));
                                         }
 		| APPROXNUM                 	{
                                             memset(attrNum, 0x00, sizeof(attrNum));
                                             sprintf(attrNum,"%f",$1);
-                                            $$ = malloc(sizeof(attrNum)) + 1;
+                                            $$ = malloc(sizeof(attrNum) + 1);
                                             memset($$, 0x00, sizeof(attrNum) + 1);
                                             memcpy($$, attrNum, sizeof(attrNum));
                                         }

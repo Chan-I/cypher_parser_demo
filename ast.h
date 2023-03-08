@@ -57,12 +57,6 @@
     return 1;                         \
   } while (0)
 
-#ifdef __YYEMIT
-#define _emit emit
-#else
-#define _emit
-#endif
-
 typedef enum NodeTag
 {
   T_Node,
@@ -196,7 +190,7 @@ static void check_list_invariants(const List *list);
 static void new_head_cell(List *list);
 static void new_tail_cell(List *list);
 void list_free(List *list);
-void emit(char *s, ...);
+void _emit(char *s, ...);
 //---------------------------------Return Clause------------------------------------
 
 typedef struct OrderByStmtClause

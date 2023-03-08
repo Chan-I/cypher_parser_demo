@@ -1,7 +1,9 @@
 #include "ast.h"
 
-void emit(char *s, ...)
+void _emit(char *s, ...)
 {
+#ifndef __YYEMIT
+#else
 	va_list ap;
 	va_start(ap, s);
 
@@ -10,6 +12,7 @@ void emit(char *s, ...)
 	fprintf(stdout, "\n");
 	fflush(stdout);
 	va_end(ap);
+#endif
 }
 
 List *
